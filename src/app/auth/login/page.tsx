@@ -86,24 +86,23 @@ export default function LoginPage() {
                     </div>
 
                     {error && (
-                        <div className="p-3 text-sm text-red-500 bg-red-50 rounded-lg border border-red-100">
+                        <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                             {error}
                         </div>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Email</label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                <Input
-                                    name="email"
-                                    type="email"
-                                    required
-                                    placeholder="name@example.com"
-                                    className="pl-10 h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
-                                />
-                            </div>
+                            <Input
+                                label="Email"
+                                name="email"
+                                type="email"
+                                required
+                                icon={<Mail size={18} />}
+                                placeholder="name@example.com"
+                                className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                            />
                         </div>
 
                         <div className="space-y-2">
@@ -113,16 +112,14 @@ export default function LoginPage() {
                                     Forgot password?
                                 </Link>
                             </div>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                <Input
-                                    name="password"
-                                    type="password"
-                                    required
-                                    placeholder="••••••••"
-                                    className="pl-10 h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
-                                />
-                            </div>
+                            <Input
+                                name="password"
+                                type="password"
+                                required
+                                icon={<Lock size={18} />}
+                                placeholder="••••••••"
+                                className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                            />
                         </div>
 
                         <Button type="submit" size="lg" disabled={loading} className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold h-11">
