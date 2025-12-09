@@ -76,10 +76,10 @@ export const Header = () => {
                 <div className="flex items-center gap-3 ml-auto">
                     {/* Search (Collapsed on mobile) */}
                     <div className="hidden lg:flex max-w-xs relative group mr-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-teal-500 transition-colors" />
                         <Input
+                            icon={<Search className="w-4 h-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />}
                             placeholder="Search..."
-                            className="pl-9 bg-slate-100 dark:bg-slate-800 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-teal-200 dark:focus:border-teal-700 focus:ring-1 focus:ring-teal-100 dark:focus:ring-teal-900 text-sm h-9 rounded-full w-[200px] transition-all"
+                            className="bg-slate-100 dark:bg-slate-800 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-teal-200 dark:focus:border-teal-700 focus:ring-1 focus:ring-teal-100 dark:focus:ring-teal-900 text-sm h-9 rounded-full w-[200px] transition-all"
                         />
                     </div>
 
