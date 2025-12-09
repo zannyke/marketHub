@@ -1,9 +1,61 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, User, Github, ArrowRight } from "lucide-react";
 
 export default function SignupPage() {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const supabase = createClient();
+
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get("email") as string;
+        const password = formData.get("password") as string;
+        const confirmPassword = formData.get("confirmPassword") as string;
+        const fullName = formData.get("fullName") as string; // Optional metadata
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                    },
+                },
+            });
+
+            if (error) {
+                setError(error.message);
+            } else {
+                // Determine flow: verify email? Or auto login?
+                // For now, redirect to login or check email page
+                router.push("/auth/login?message=Check your email to verify account");
+            }
+        } catch (err) {
+            setError("An unexpected error occurred");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
             {/* Left: Branding/Visual */}
@@ -51,13 +103,21 @@ export default function SignupPage() {
                         <p className="text-slate-500 mt-2">Start your premium shopping journey today.</p>
                     </div>
 
-                    <form className="space-y-5">
+                    {error && (
+                        <div className="p-3 text-sm text-red-500 bg-red-50 rounded-lg border border-red-100">
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Full Name</label>
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                 <Input
+                                    name="fullName"
                                     type="text"
+                                    required
                                     placeholder="John Doe"
                                     className="pl-10 h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
                                 />
@@ -69,7 +129,9 @@ export default function SignupPage() {
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                 <Input
+                                    name="email"
                                     type="email"
+                                    required
                                     placeholder="name@example.com"
                                     className="pl-10 h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
                                 />
@@ -82,7 +144,9 @@ export default function SignupPage() {
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                     <Input
+                                        name="password"
                                         type="password"
+                                        required
                                         placeholder="••••••••"
                                         className="pl-10 h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
                                     />
@@ -93,7 +157,9 @@ export default function SignupPage() {
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                     <Input
+                                        name="confirmPassword"
                                         type="password"
+                                        required
                                         placeholder="••••••••"
                                         className="pl-10 h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
                                     />
@@ -101,8 +167,9 @@ export default function SignupPage() {
                             </div>
                         </div>
 
-                        <Button size="lg" className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold h-11">
-                            Create Account <ArrowRight size={18} className="ml-2" />
+                        <Button type="submit" size="lg" disabled={loading} className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold h-11">
+                            {loading ? "Creating..." : "Create Account"}
+                            {!loading && <ArrowRight size={18} className="ml-2" />}
                         </Button>
                     </form>
 
