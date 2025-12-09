@@ -74,7 +74,7 @@ export default function Marketplace() {
                                     </div>
                                     <Button
                                         size="sm"
-                                        onClick={() => addToCart()}
+                                        onClick={() => addToCart(item)}
                                         className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-full px-5 h-9 shadow-none transition-colors active:scale-95"
                                     >
                                         Add
