@@ -1,9 +1,14 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ShoppingBag, Truck, CheckCircle, Zap, Star, Heart, Flame, ShieldCheck } from "lucide-react";
+import { ArrowRight, ShoppingBag, Truck, CheckCircle, Zap, Star, Heart, Flame, ShieldCheck, User } from "lucide-react";
 import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
+import { useApp } from "@/providers/AppProvider";
 
 export default function Home() {
+  const { user, isLoading } = useApp();
+
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Hero Section */}
@@ -11,10 +16,17 @@ export default function Home() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#f0f9ff_1px,transparent_1px),linear-gradient(to_bottom,#f0f9ff_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30" />
 
         <div className="container mx-auto px-4 flex flex-col items-center relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-sm font-medium mb-8 animate-fade-in-up">
-            <span className="flex h-2 w-2 rounded-full bg-teal-500"></span>
-            Welcome to the future of shopping
-          </div>
+          {user ? (
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-sm font-medium mb-8 animate-fade-in-up">
+              <span className="flex h-2 w-2 rounded-full bg-teal-500"></span>
+              Welcome back, {user.email?.split('@')[0]}!
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-sm font-medium mb-8 animate-fade-in-up">
+              <span className="flex h-2 w-2 rounded-full bg-teal-500"></span>
+              Welcome to the future of shopping
+            </div>
+          )}
 
           <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-tight mb-8 tracking-tight max-w-4xl">
             Curated Excellence for <br />
@@ -29,14 +41,23 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-md mx-auto mb-20">
             <Link href="/marketplace" className="w-full sm:w-auto">
               <Button size="lg" className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white rounded-full px-8 h-14 text-lg font-bold shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
-                Start Exploring <ArrowRight size={20} className="ml-2" />
+                {user ? "Continue Shopping" : "Start Exploring"} <ArrowRight size={20} className="ml-2" />
               </Button>
             </Link>
-            <Link href="/auth/signup" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full px-8 h-14 text-lg border-2 border-slate-200 text-slate-700 hover:bg-white hover:text-teal-600 hover:border-teal-200 transition-all font-bold">
-                Join for Free
-              </Button>
-            </Link>
+
+            {!user ? (
+              <Link href="/auth/signup" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full px-8 h-14 text-lg border-2 border-slate-200 text-slate-700 hover:bg-white hover:text-teal-600 hover:border-teal-200 transition-all font-bold">
+                  Join for Free
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/customer/orders" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full px-8 h-14 text-lg border-2 border-slate-200 text-slate-700 hover:bg-white hover:text-teal-600 hover:border-teal-200 transition-all font-bold">
+                  My Orders
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Trust Badges */}
