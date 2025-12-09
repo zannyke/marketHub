@@ -1,0 +1,10 @@
+src\app\auth\login\page.tsx
+src\app\auth\signup\page.tsx
+src\app\cart\page.tsx
+src\app\community\page.tsx
+src\app\dashboard\page.tsx
+src\app\marketplace\page.tsx
+src\app\page.tsx
+src\app\product\[id]\page.tsx
+src\app\sell\page.tsx
+src\components\layout\Header.tsx
