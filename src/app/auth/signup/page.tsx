@@ -45,9 +45,11 @@ export default function SignupPage() {
             if (error) {
                 setError(error.message);
             } else {
-                // Determine flow: verify email? Or auto login?
-                // For now, redirect to login or check email page
-                router.push("/auth/login?message=Check your email to verify account");
+                // If email confirmation is disabled in Supabase, the user is signed up but not automatically logged in by this call alone in some configs, 
+                // but usually signUp returns a session if auto-confirm is on.
+                // Let's redirect to login with a success message.
+                router.push("/auth/login?message=Account created successfully! Please sign in.");
+                router.refresh();
             }
         } catch (err) {
             setError("An unexpected error occurred");
