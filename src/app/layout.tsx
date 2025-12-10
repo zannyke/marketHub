@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
+import { AppShell } from "@/components/layout/AppShell";
 import { AiAssistant } from "@/components/ai/AiAssistant";
 import { AppProvider } from "@/providers/AppProvider";
 
@@ -25,10 +25,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.variable}>
         <AppProvider>
-          <Header />
-          <div className="pt-20 min-h-[calc(100vh-100px)]">
+          <AppShell>
             {children}
-          </div>
+          </AppShell>
           <AiAssistant />
         </AppProvider>
       </body>

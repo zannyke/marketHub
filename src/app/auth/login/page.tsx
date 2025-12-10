@@ -58,7 +58,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="relative z-10 max-w-md">
-                    <h2 className="text-4xl font-bold mb-6 leading-tight">
+                    <h2 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
                         Discover the world's most premium marketplace.
                     </h2>
                     <p className="text-teal-100 text-lg leading-relaxed">
