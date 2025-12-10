@@ -82,6 +82,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 setUser(activeUser);
 
                 if (activeUser) {
+                    const metaRole = activeUser.user_metadata?.role as Role;
+                    if (metaRole) setRole(metaRole);
+
                     await fetchCartCount(activeUser.id);
                 }
             } catch (error) {
@@ -95,10 +98,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         // Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            setUser(session?.user ?? null);
+            const currentUser = session?.user ?? null;
+            setUser(currentUser);
 
-            if (session?.user) {
-                await fetchCartCount(session.user.id);
+            if (currentUser) {
+                const metaRole = currentUser.user_metadata?.role as Role;
+                if (metaRole) setRole(metaRole);
+
+                await fetchCartCount(currentUser.id);
 
                 // Track Login Stats (Only on explicit sign-in or initial session load)
                 if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
@@ -110,6 +117,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     }
                 }
             } else {
+                setRole("buyer"); // Reset role to default on logout
                 setCartCount(0);
             }
         });
