@@ -10,10 +10,18 @@ import { Mail, Lock, User, Github, ArrowRight, Briefcase, ShoppingBag, Truck } f
 
 export default function SignupPage() {
     const router = useRouter();
+    const { user } = useApp(); // Access global user state
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [role, setRole] = useState<'buyer' | 'seller' | 'delivery'>('buyer');
     const supabase = createClient();
+
+    // Auto-redirect if user becomes authenticated
+    useEffect(() => {
+        if (user) {
+            router.push("/?welcome=true");
+        }
+    }, [user, router]);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -33,7 +41,8 @@ export default function SignupPage() {
         }
 
         try {
-            const { data, error } = await supabase.auth.signUp({
+            // Race against a timeout to prevent hanging
+            const signUpPromise = supabase.auth.signUp({
                 email,
                 password,
                 options: {
@@ -44,18 +53,30 @@ export default function SignupPage() {
                 },
             });
 
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Request timed out. Please check your connection.")), 10000)
+            );
+
+            // @ts-ignore
+            const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
+
             if (error) {
                 setError(error.message);
-                setLoading(false);
             } else if (data.session) {
-                window.location.href = "/?welcome=true";
+                // Determine redirect based on role
+                const redirectPath = role === 'seller' ? '/dashboard' : '/';
+                router.push(redirectPath);
+                router.refresh();
             } else {
+                // Email confirmation required
                 router.push("/auth/login?message=Account created successfully! Please check your email to confirm.");
                 router.refresh();
             }
-        } catch (err) {
-            setError("An unexpected error occurred");
-            setLoading(false);
+        } catch (err: any) {
+            console.error("Signup error:", err);
+            setError(err.message || "An unexpected error occurred");
+        } finally {
+            if (!user) setLoading(false); // Only stop loading if we haven't auto-redirected
         }
     }
 
