@@ -116,11 +116,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 // Restore Cart
                 await fetchCart(user.id);
 
-                // Track Login
-                try {
-                    const location = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                    supabase.rpc('track_user_login', { user_location: location });
-                } catch (e) { }
+                // Login tracking is handled by onAuthStateChange (SIGNED_IN) to ensure accuracy
             };
 
             const userCheckPromise = checkUserSession();
