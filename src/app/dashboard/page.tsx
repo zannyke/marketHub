@@ -2,8 +2,43 @@
 
 import { Button } from "@/components/ui/button";
 import { CircleDollarSign, Package, ShoppingBag, TrendingUp, Truck, Users, Clock, CheckCircle } from "lucide-react";
+import { useApp } from "@/providers/AppProvider";
+import { useEffect, useState } from "react";
+
+interface ProfileStats {
+    login_count: number;
+    cart_count: number;
+    bought_count: number;
+    sold_count: number;
+    delivered_count: number;
+}
 
 export default function SellerDashboard() {
+    const { user, supabase } = useApp();
+    const [stats, setStats] = useState<ProfileStats | null>(null);
+    const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            if (!user) return;
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('login_count, cart_count, bought_count, sold_count, delivered_count')
+                    .eq('id', user.id)
+                    .single();
+
+                if (data) setStats(data);
+            } catch (e) {
+                console.error("Error fetching stats:", e);
+            } finally {
+                setIsLoadingStats(false);
+            }
+        };
+
+        fetchStats();
+    }, [user, supabase]);
+
     return (
         <div className="min-h-screen bg-slate-50 pt-8 pb-12">
             <div className="container mx-auto px-4">
@@ -24,20 +59,22 @@ export default function SellerDashboard() {
                     </div>
                 </div>
 
-                {/* Stats Grid */}
+                {/* Stats Grid - LIVE DATA */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {[
-                        { label: "Total Revenue", value: "$12,450.00", change: "+12.5%", icon: <CircleDollarSign size={24} className="text-teal-600" />, bg: "bg-teal-50" },
-                        { label: "Active Orders", value: "24", change: "+4", icon: <Package size={24} className="text-blue-600" />, bg: "bg-blue-50" },
-                        { label: "Products Listed", value: "156", change: "+2", icon: <ShoppingBag size={24} className="text-purple-600" />, bg: "bg-purple-50" },
-                        { label: "Total Customers", value: "892", change: "+18%", icon: <Users size={24} className="text-orange-600" />, bg: "bg-orange-50" },
+                        { label: "Items in Cart", value: stats?.cart_count ?? 0, change: "Live", icon: <ShoppingBag size={24} className="text-teal-600" />, bg: "bg-teal-50" },
+                        { label: "Items Sold", value: stats?.sold_count ?? 0, change: "Lifetime", icon: <CircleDollarSign size={24} className="text-blue-600" />, bg: "bg-blue-50" },
+                        { label: "Items Bought", value: stats?.bought_count ?? 0, change: "Lifetime", icon: <Package size={24} className="text-purple-600" />, bg: "bg-purple-50" },
+                        { label: "Logins", value: stats?.login_count ?? 0, change: "Total", icon: <Users size={24} className="text-orange-600" />, bg: "bg-orange-50" },
                     ].map((stat, i) => (
                         <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
                             <div>
                                 <p className="text-sm font-medium text-slate-500 mb-1">{stat.label}</p>
-                                <h3 className="text-2xl font-bold text-slate-900">{stat.value}</h3>
-                                <p className="text-xs font-semibold text-green-600 mt-1 flex items-center">
-                                    <TrendingUp size={12} className="mr-1" /> {stat.change} vs last month
+                                <h3 className="text-2xl font-bold text-slate-900">
+                                    {isLoadingStats ? "..." : stat.value}
+                                </h3>
+                                <p className="text-xs font-semibold text-teal-600 mt-1 flex items-center">
+                                    <TrendingUp size={12} className="mr-1" /> {stat.change}
                                 </p>
                             </div>
                             <div className={`p-3 rounded-xl ${stat.bg} shadow-sm`}>
