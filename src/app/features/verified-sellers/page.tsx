@@ -14,7 +14,7 @@ export default function VerifiedSellersPage() {
                     </div>
                     <div className="p-6 bg-teal-50 rounded-xl border border-teal-100">
                         <h3 className="font-bold text-xl mb-3 text-teal-800">Track Record</h3>
-                        <p className="text-slate-600">We continuously monitor performance. Sellers must maintain a 4.5+ star rating and <1% dispute rate to keep their badge.</p>
+                        <p className="text-slate-600">We continuously monitor performance. Sellers must maintain a 4.5+ star rating and &lt;1% dispute rate to keep their badge.</p>
                     </div>
                 </div>
 
