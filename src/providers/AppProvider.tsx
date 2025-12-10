@@ -105,28 +105,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         };
 
         const initializeFlow = async () => {
-            // Race checkUserSession against a 4-second timeout to prevent indefinite loading screen
-            const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 4000));
+            // Helper to sync state when user is found
+            const handleUserFound = async (user: User) => {
+                if (!mounted) return;
 
-            const activeUser = await Promise.race([
-                checkUserSession(),
-                timeoutPromise
-            ]) as User | null;
+                // Restore Role
+                const metaRole = user.user_metadata?.role as Role;
+                if (metaRole) _setRole(metaRole);
 
-            if (mounted) {
+                // Restore Cart
+                await fetchCart(user.id);
+
+                // Track Login
+                try {
+                    const location = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    supabase.rpc('track_user_login', { user_location: location });
+                } catch (e) { }
+            };
+
+            const userCheckPromise = checkUserSession();
+
+            // Race against timeout to unblock UI
+            const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve('TIMEOUT'), 4000));
+
+            const result = await Promise.race([userCheckPromise, timeoutPromise]);
+
+            if (result === 'TIMEOUT') {
+                console.warn("AppProvider: Auth check timed out - Unblocking UI, waiting in background...");
+                setIsLoading(false);
+
+                // Handle the slow response when it finally arrives
+                userCheckPromise.then(delayedUser => {
+                    if (delayedUser) {
+                        console.log("AppProvider: Background auth check finished. Updating user.");
+                        if (mounted) {
+                            setUser(delayedUser);
+                            handleUserFound(delayedUser);
+                        }
+                    }
+                });
+            } else {
+                // Check finished fast
+                const activeUser = result as User | null;
                 if (activeUser) {
-                    // Restore Role
-                    const metaRole = activeUser.user_metadata?.role as Role;
-                    if (metaRole) _setRole(metaRole);
-
-                    // Restore Cart
-                    await fetchCart(activeUser.id);
-
-                    // Track Login
-                    try {
-                        const location = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                        supabase.rpc('track_user_login', { user_location: location });
-                    } catch (e) { }
+                    await handleUserFound(activeUser);
                 }
                 setIsLoading(false);
             }
