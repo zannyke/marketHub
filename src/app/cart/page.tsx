@@ -2,82 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Trash2, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Trash2, ArrowRight, Loader2, ShieldCheck, Plus, Minus } from "lucide-react";
 import { useApp } from "@/providers/AppProvider";
-import { createClient } from "@/lib/supabase/client";
-
-interface CartItem {
-    id: number;
-    title: string;
-    type: string;
-    price: number;
-    imageColor?: string;
-    image?: string;
-}
 
 export default function CartPage() {
-    const { user, isLoading: authLoading } = useApp();
-    const [cartItems, setCartItems] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const supabase = createClient();
+    const { user, isLoading: authLoading, cartItems, removeFromCart, updateQuantity } = useApp();
 
-    useEffect(() => {
-        const fetchCart = async () => {
-            if (!user) {
-                setLoading(false);
-                return;
-            }
-
-            const { data, error } = await supabase
-                .from('cart_items')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (data) {
-                setCartItems(data.map(item => ({
-                    id: item.id,
-                    ...item.product_metadata, // Spread metadata for title, price, etc.
-                    quantity: item.quantity
-                })));
-            }
-            setLoading(false);
-        };
-
-        if (!authLoading) {
-            fetchCart();
-        }
-    }, [user, authLoading]);
-
-    const removeItem = async (id: number) => {
-        // Optimistic update
-        setCartItems(prev => prev.filter(item => item.id !== id));
-
-        const { error } = await supabase
-            .from('cart_items')
-            .delete()
-            .eq('id', id); // Note: DB id matches item.id? DB id is unique row id. 
-        // In mapping, we used item.id which might be DB id or product id.
-        // Let's ensure we use row id for deletion.
-    }
-
-    // Correct mapping for ID:
-    // When mapping, let's keep the row id separate from product id.
-    // Re-doing fetch logic in mind:
-    /*
-    setCartItems(data.map(item => ({
-        dbId: item.id,
-        ...item.product_metadata
-    })));
-    */
-
-    // Actually, let's implement the logic cleanly within the file below.
-
-    const subtotal = cartItems.reduce((acc, item) => acc + (item.price || 0), 0);
+    const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
     const tax = subtotal * 0.08;
     const total = subtotal + tax;
 
-    if (authLoading || loading) {
+    if (authLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="animate-spin text-teal-600" size={32} />
@@ -125,7 +60,7 @@ export default function CartPage() {
                         {/* Cart Items List */}
                         <div className="lg:col-span-8 space-y-4">
                             {cartItems.map((item) => (
-                                <div key={item.id} className="group bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-6">
+                                <div key={item.productId || item.id} className="group bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-6">
                                     {/* Image */}
                                     <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl bg-slate-50 dark:bg-slate-800 shrink-0 flex items-center justify-center p-4 relative overflow-hidden">
                                         {item.image ? (
@@ -144,21 +79,40 @@ export default function CartPage() {
                                                 </span>
                                             </div>
                                             <h3 className="font-bold text-slate-900 dark:text-white text-lg leading-snug max-w-xs">{item.title}</h3>
-                                            <p className="text-sm text-slate-400 hidden sm:block">Item ID: {item.id}</p>
+                                            <p className="text-sm text-slate-400 hidden sm:block">Item ID: {item.productId || item.id}</p>
                                         </div>
 
-                                        <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-8 w-full sm:w-auto">
-                                            <span className="font-bold text-xl text-slate-900 dark:text-white whitespace-nowrap">
-                                                ${item.price?.toFixed(2)}
-                                            </span>
+                                        <div className="flex flex-col sm:items-end gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center bg-slate-50 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700">
+                                                    <button
+                                                        onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                                                        className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+                                                        disabled={item.quantity <= 1}
+                                                    >
+                                                        <Minus size={14} className={item.quantity <= 1 ? "text-slate-300" : "text-slate-600 dark:text-slate-300"} />
+                                                    </button>
+                                                    <span className="font-bold text-sm w-8 text-center text-slate-900 dark:text-white">{item.quantity}</span>
+                                                    <button
+                                                        onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                                                        className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+                                                    >
+                                                        <Plus size={14} className="text-slate-600 dark:text-slate-300" />
+                                                    </button>
+                                                </div>
+                                                <span className="font-bold text-xl text-slate-900 dark:text-white whitespace-nowrap min-w-[80px] text-right">
+                                                    ${(item.price * item.quantity).toFixed(2)}
+                                                </span>
+                                            </div>
 
-                                            <button
-                                                onClick={() => removeItem(item.id)}
-                                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
-                                                title="Remove Item"
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => removeFromCart(item.productId)}
+                                                className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 h-8"
                                             >
-                                                <Trash2 size={20} />
-                                            </button>
+                                                <Trash2 size={14} className="mr-1" /> Remove
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>
