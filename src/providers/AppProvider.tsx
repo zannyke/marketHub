@@ -105,19 +105,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const toggleTheme = () => {
-        const newTheme = theme === "light" ? "dark" : "light";
-        setTheme(newTheme);
-        localStorage.setItem("theme", newTheme);
+    const toggleTheme = React.useCallback(() => {
+        setTheme((prev) => {
+            const newTheme = prev === "light" ? "dark" : "light";
+            localStorage.setItem("theme", newTheme);
+            if (newTheme === "dark") {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+            }
+            return newTheme;
+        });
+    }, []);
 
-        if (newTheme === "dark") {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
-    };
-
-    const addToCart = async (item?: any) => {
+    const addToCart = React.useCallback(async (item?: any) => {
         // Optimistic update
         setCartCount((prev) => prev + 1);
 
@@ -129,24 +130,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     quantity: 1,
                     product_metadata: item
                 });
-                // Re-fetch to ensure sync? Or trust optimistic.
-                // fetchCartCount(user.id); 
             } catch (error) {
                 console.error("Error adding to DB cart:", error);
-                // Revert if failed?
-                // setCartCount((prev) => prev - 1);
             }
         }
-    };
+    }, [user]);
 
-    const signOut = async () => {
+    const signOut = React.useCallback(async () => {
         await supabase.auth.signOut();
         setCartCount(0);
-        // Maybe redirect home?
-    };
+    }, []);
+
+    const value = React.useMemo(() => ({
+        theme,
+        toggleTheme,
+        role,
+        setRole,
+        cartCount,
+        addToCart,
+        user,
+        isLoading,
+        signOut
+    }), [theme, role, cartCount, addToCart, user, isLoading, toggleTheme, signOut]);
 
     return (
-        <AppContext.Provider value={{ theme, toggleTheme, role, setRole, cartCount, addToCart, user, isLoading, signOut }}>
+        <AppContext.Provider value={value}>
             {children}
         </AppContext.Provider>
     );
