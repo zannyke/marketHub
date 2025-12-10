@@ -75,9 +75,16 @@ export default function SignupPage() {
             }
         } catch (err: any) {
             console.error("Signup error:", err);
+
+            // Handle "User already registered" explicitly
+            if (err.message?.includes("already registered") || err.message?.includes("already exists")) {
+                router.push("/auth/login?message=Account already exists. Please sign in.");
+                return;
+            }
+
             setError(err.message || "An unexpected error occurred");
         } finally {
-            if (!user) setLoading(false); // Only stop loading if we haven't auto-redirected
+            if (!user) setLoading(false);
         }
     }
 
