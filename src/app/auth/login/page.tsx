@@ -31,9 +31,10 @@ export default function LoginPage() {
 
             if (error) {
                 setError(error.message);
+                setLoading(false);
             } else {
-                router.push("/");
-                router.refresh();
+                // Force a hard redirect to ensure all auth states are fresh
+                window.location.href = "/";
             }
         } catch (err) {
             setError("An unexpected error occurred");
