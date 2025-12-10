@@ -39,9 +39,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (savedTheme === "dark") {
                 document.documentElement.classList.add("dark");
             }
-        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            setTheme("dark");
-            document.documentElement.classList.add("dark");
         }
     }, []);
 
