@@ -59,15 +59,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 const { data } = await Promise.race([sessionPromise, timeoutPromise]).catch(() => ({ data: { session: null } }));
                 const session = data?.session;
 
+                console.log("AppProvider: Session check result:", session ? "Found User" : "No User", session?.user?.email);
+
                 let activeUser = session?.user ?? null;
 
                 // Manual Recovery for "Hanging SDK" workwaround
                 if (!activeUser) {
+                    console.log("AppProvider: No active user from SDK, attempting manual recovery...");
                     try {
                         const projectId = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1].split('.')[0];
+                        console.log("AppProvider: Detected Project ID:", projectId);
+
                         if (projectId) {
                             const key = `sb-${projectId}-auth-token`;
                             const stored = localStorage.getItem(key);
+                            console.log("AppProvider: Storage key:", key, "Found token?", !!stored);
+
                             if (stored) {
                                 console.log("Attempting session recovery from storage...");
                                 const tokenData = JSON.parse(stored);
@@ -77,7 +84,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                                 });
                                 if (recovered.session) {
                                     activeUser = recovered.session.user;
-                                    console.log("Session recovered successfully!");
+                                    console.log("Session recovered successfully!", activeUser.email);
+                                } else {
+                                    console.log("AppProvider: Recovery failed - setSession returned no session");
                                 }
                             }
                         }
