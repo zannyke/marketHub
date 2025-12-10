@@ -47,10 +47,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize Auth & Cart
     useEffect(() => {
+        let mounted = true;
+
         const initializeApp = async () => {
             try {
-                // Get Session
-                const { data: { session } } = await supabase.auth.getSession();
+                // Get Session with a timeout race to prevent hanging
+                const sessionPromise = supabase.auth.getSession();
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject("Timeout"), 5000));
+
+                // @ts-ignore
+                const { data } = await Promise.race([sessionPromise, timeoutPromise]).catch(() => ({ data: { session: null } }));
+                const session = data?.session;
 
                 let activeUser = session?.user ?? null;
 
@@ -79,25 +86,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     }
                 }
 
-                setUser(activeUser);
+                if (mounted) {
+                    setUser(activeUser);
 
-                if (activeUser) {
-                    const metaRole = activeUser.user_metadata?.role as Role;
-                    if (metaRole) setRole(metaRole);
+                    if (activeUser) {
+                        const metaRole = activeUser.user_metadata?.role as Role;
+                        if (metaRole) setRole(metaRole);
 
-                    await fetchCartCount(activeUser.id);
+                        await fetchCartCount(activeUser.id);
+                    }
                 }
             } catch (error) {
                 console.error("Error initializing app:", error);
             } finally {
-                setIsLoading(false);
+                if (mounted) setIsLoading(false);
             }
         };
 
         initializeApp();
 
+        // Fail-safe: Force stop loading after 3s if Supabase sdk completely hangs
+        const maxWait = setTimeout(() => {
+            if (mounted) setIsLoading(false);
+        }, 3000);
+
         // Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (!mounted) return;
+
             const currentUser = session?.user ?? null;
             setUser(currentUser);
 
@@ -123,6 +139,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
 
         return () => {
+            mounted = false;
+            clearTimeout(maxWait);
             subscription.unsubscribe();
         };
     }, []);
