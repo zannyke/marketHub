@@ -33,6 +33,25 @@ export default function LoginPage() {
 
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL) addLog("WARNING: SUPABASE_URL missing");
 
+        const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+        addLog(`Config URL: ${sbUrl.substring(0, 40)}...`); // Show more to debug protocol
+
+        // Connectivity Check
+        try {
+            addLog("Checking connectivity to Supabase...");
+            // Simple fetch to the project URL to see if it resolves
+            const res = await fetch(`${sbUrl}/rest/v1/`, {
+                method: "HEAD",
+                headers: { "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "" }
+            });
+            addLog(`Connectivity Status: ${res.status} ${res.statusText}`);
+        } catch (netErr: any) {
+            addLog(`Connectivity FAILED: ${netErr.message || netErr}`);
+            setError("Cannot reach server. Check Firewall/DNS.");
+            setLoading(false);
+            return;
+        }
+
         // Safety timeout in case network hangs
         const timeoutId = setTimeout(() => {
             setLoading(false);
