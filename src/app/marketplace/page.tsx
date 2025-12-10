@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import { Star } from 'lucide-react';
@@ -69,9 +70,10 @@ ProductCard.displayName = "ProductCard";
 
 // ProductCard ... (unchanged)
 
-export default function Marketplace({ searchParams }: { searchParams: { cat?: string } }) {
+export default function Marketplace() {
     const { addToCart } = useApp();
-    const category = searchParams?.cat;
+    const searchParams = useSearchParams();
+    const category = searchParams.get('cat');
 
     // Generate and Filter Products
     const products = useMemo(() => {
@@ -83,12 +85,18 @@ export default function Marketplace({ searchParams }: { searchParams: { cat?: st
         // Access URL params: "electronics", "fashion", "home", "gadgets" -> "Electronics"
 
         const target = category.toLowerCase();
+
         return allProducts.filter(item => {
             const itemCat = item.category.toLowerCase();
-            if (target === 'trending') return item.tag === 'Hot'; // Special case for "Trending"
-            if (target === 'gadgets') return itemCat === 'electronics'; // Map gadgets to electronics
-            if (target === 'home') return itemCat.includes('home');
-            return itemCat.includes(target);
+
+            // Debug log to console to verify filtering
+            // console.log(`Checking ${item.title} (${itemCat}) against ${target}`);
+
+            if (target === 'trending') return item.tag === 'Hot';
+            if (target === 'gadgets') return itemCat === 'electronics';
+            if (target === 'home') return itemCat.includes('home'); // matches "Home"
+
+            return itemCat === target || itemCat.includes(target);
         });
     }, [category]);
 
