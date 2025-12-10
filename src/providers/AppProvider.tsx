@@ -51,10 +51,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             try {
                 // Get Session
                 const { data: { session } } = await supabase.auth.getSession();
-                setUser(session?.user ?? null);
 
-                if (session?.user) {
-                    await fetchCartCount(session.user.id);
+                let activeUser = session?.user ?? null;
+
+                // Manual Recovery for "Hanging SDK" workwaround
+                if (!activeUser) {
+                    try {
+                        const projectId = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1].split('.')[0];
+                        if (projectId) {
+                            const key = `sb-${projectId}-auth-token`;
+                            const stored = localStorage.getItem(key);
+                            if (stored) {
+                                console.log("Attempting session recovery from storage...");
+                                const tokenData = JSON.parse(stored);
+                                const { data: recovered } = await supabase.auth.setSession({
+                                    access_token: tokenData.access_token,
+                                    refresh_token: tokenData.refresh_token
+                                });
+                                if (recovered.session) {
+                                    activeUser = recovered.session.user;
+                                    console.log("Session recovered successfully!");
+                                }
+                            }
+                        }
+                    } catch (recErr) {
+                        console.error("Recovery failed:", recErr);
+                    }
+                }
+
+                setUser(activeUser);
+
+                if (activeUser) {
+                    await fetchCartCount(activeUser.id);
                 }
             } catch (error) {
                 console.error("Error initializing app:", error);
