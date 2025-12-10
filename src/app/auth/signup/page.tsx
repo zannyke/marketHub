@@ -32,7 +32,7 @@ export default function SignupPage() {
         }
 
         try {
-            const { error } = await supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
@@ -44,16 +44,17 @@ export default function SignupPage() {
 
             if (error) {
                 setError(error.message);
+                setLoading(false);
+            } else if (data.session) {
+                // User is signed in immediately (Auto Confirm Enabled)
+                window.location.href = "/?welcome=true";
             } else {
-                // If email confirmation is disabled in Supabase, the user is signed up but not automatically logged in by this call alone in some configs, 
-                // but usually signUp returns a session if auto-confirm is on.
-                // Let's redirect to login with a success message.
-                router.push("/auth/login?message=Account created successfully! Please sign in.");
+                // Email confirmation required
+                router.push("/auth/login?message=Account created successfully! Please check your email to confirm.");
                 router.refresh();
             }
         } catch (err) {
             setError("An unexpected error occurred");
-        } finally {
             setLoading(false);
         }
     }
