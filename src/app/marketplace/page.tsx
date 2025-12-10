@@ -95,7 +95,7 @@ function MarketplaceContent() {
     }, [category]);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 pt-6 pb-24">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 pb-24">
 
             {/* Header / Filter Bar Placeholder */}
             <div className="sticky top-[73px] z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 mb-6">
