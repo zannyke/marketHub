@@ -55,7 +55,7 @@ export default function SignupPage() {
             });
 
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Request timed out. Please check your connection.")), 10000)
+                setTimeout(() => reject(new Error("Request timed out. If you aren't redirected soon, please check your email for a confirmation link.")), 30000)
             );
 
             // @ts-ignore
