@@ -44,18 +44,27 @@ const TAGS = [
     undefined, undefined, undefined, undefined // Higher chance of no tag
 ];
 
+const TITLES_BY_CATEGORY: Record<string, string[]> = {
+    Electronics: ["Premium Wireless Headphones", "Minimalist Smart Watch", "4K Ultra Drone", "Bluetooth Speaker", "Pro Gaming Mouse", "Mechanical Keyboard", "Noise Cancelling Earbuds", "Smartphone Gimbal", "Smart Home Hub"],
+    Fashion: ["Designer Sunglasses", "Luxury Leather Bag", "Urban Waterproof Backpack", "Limited Edition Sneakers", "Vintage Denim Jacket", "Running Shoes", "Summer Hat", "Silk Scarf"],
+    Home: ["Espresso Master Machine", "Ceramic Vase", "Organic Green Tea", "Smart Coffee Maker", "Cotton Bed Sheets", "Minimalist Lamp", "Succulent Pot Set"],
+    Beauty: ["Rejuvenating Skincare Set", "Anti-Aging Cream", "Organic Face Wash", "Vitamin C Serum", "Hair Care Bundle"],
+    Gaming: ["Pro Gaming Mouse", "Mechanical Keyboard", "Gaming Headset", "RGB Mousepad", "Console Controller"]
+};
+
 export const generateProducts = (count: number): Product[] => {
     return Array.from({ length: count }, (_, i) => {
-        // Weighted logic to distribute categories based on available images 
-        // Ensure we pick from categories that have keys in CATEGORY_IMAGES
         const categoryKeys = Object.keys(CATEGORY_IMAGES);
         const category = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
 
-        // Get image specific to category, or fallback to headphones
+        // Get consistent image
         const catImages = CATEGORY_IMAGES[category] || ["/products/headphones.png"];
         const image = catImages[Math.floor(Math.random() * catImages.length)];
 
-        const baseTitle = TITLES[Math.floor(Math.random() * TITLES.length)];
+        // Get consistent title
+        const catTitles = TITLES_BY_CATEGORY[category] || TITLES;
+        const baseTitle = catTitles[Math.floor(Math.random() * catTitles.length)];
+
         const tagObj = TAGS[Math.floor(Math.random() * TAGS.length)];
         const seller = SELLERS[Math.floor(Math.random() * SELLERS.length)];
 
@@ -64,7 +73,7 @@ export const generateProducts = (count: number): Product[] => {
 
         return {
             id: i + 1,
-            title: `${category} - ${baseTitle} ${Math.floor(Math.random() * 1000)}`, // Unique title with category prefix for variety
+            title: `${baseTitle}`, // Cleaner title
             category,
             price: price + 0.99,
             oldPrice: price + Math.floor(Math.random() * 50) + 10 + 0.99,
