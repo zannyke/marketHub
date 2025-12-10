@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, User, Github, ArrowRight, Briefcase, ShoppingBag, Truck } from "lucide-react";
+import { useApp } from "@/providers/AppProvider";
 
 export default function SignupPage() {
     const router = useRouter();
