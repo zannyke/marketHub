@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useMemo } from "react";
 import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
