@@ -26,6 +26,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<Theme>("light");
     const [role, _setRole] = useState<Role>("buyer");
     const [cartCount, setCartCount] = useState(0);
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Persist role changes to Supabase
     const setRole = React.useCallback(async (newRole: Role) => {
@@ -43,8 +45,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             }
         }
     }, [user, supabase]);
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     const supabase = createClient();
 
