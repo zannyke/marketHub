@@ -24,8 +24,25 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<Theme>("light");
-    const [role, setRole] = useState<Role>("buyer");
+    const [role, _setRole] = useState<Role>("buyer");
     const [cartCount, setCartCount] = useState(0);
+
+    // Persist role changes to Supabase
+    const setRole = React.useCallback(async (newRole: Role) => {
+        // 1. Optimistic Update
+        _setRole(newRole);
+
+        // 2. Persist to User Metadata
+        if (user) {
+            try {
+                await supabase.auth.updateUser({
+                    data: { role: newRole }
+                });
+            } catch (err) {
+                console.error("Failed to persist role:", err);
+            }
+        }
+    }, [user, supabase]);
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -95,7 +112,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
                     if (activeUser) {
                         const metaRole = activeUser.user_metadata?.role as Role;
-                        if (metaRole) setRole(metaRole);
+                        if (metaRole) _setRole(metaRole);
 
                         await fetchCartCount(activeUser.id);
                     }
@@ -123,7 +140,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
             if (currentUser) {
                 const metaRole = currentUser.user_metadata?.role as Role;
-                if (metaRole) setRole(metaRole);
+                if (metaRole) _setRole(metaRole);
 
                 await fetchCartCount(currentUser.id);
 
@@ -137,7 +154,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                     }
                 }
             } else {
-                setRole("buyer"); // Reset role to default on logout
+                _setRole("buyer"); // Reset role to default on logout
                 setCartCount(0);
             }
         });

@@ -144,19 +144,19 @@ export const Header = () => {
                                         <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Switch Account</h5>
                                         <div className="grid grid-cols-3 gap-1">
                                             <button
-                                                onClick={() => setRole('buyer')}
+                                                onClick={() => { setRole('buyer'); router.push('/'); }}
                                                 className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs font-medium transition-colors ${role === 'buyer' ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 ring-1 ring-teal-200 dark:ring-teal-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
                                             >
                                                 <ShoppingBag size={16} /> Buyer
                                             </button>
                                             <button
-                                                onClick={() => setRole('seller')}
+                                                onClick={() => { setRole('seller'); router.push('/'); }}
                                                 className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs font-medium transition-colors ${role === 'seller' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 ring-1 ring-blue-200 dark:ring-blue-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
                                             >
                                                 <Briefcase size={16} /> Seller
                                             </button>
                                             <button
-                                                onClick={() => setRole('delivery')}
+                                                onClick={() => { setRole('delivery'); router.push('/'); }}
                                                 className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs font-medium transition-colors ${role === 'delivery' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 ring-1 ring-orange-200 dark:ring-orange-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
                                             >
                                                 <Truck size={16} /> Delivery
