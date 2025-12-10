@@ -165,7 +165,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             if (currentUser) {
                 const metaRole = currentUser.user_metadata?.role as Role;
                 if (metaRole) _setRole(metaRole);
-                fetchCart(currentUser.id);
+                await fetchCart(currentUser.id);
+
+                // Re-add tracking
+                if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+                    try {
+                        const location = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        await supabase.rpc('track_user_login', { user_location: location });
+                        console.log("Tracking login success:", location);
+                    } catch (e) {
+                        console.error("Tracking Error:", e);
+                    }
+                }
             } else if (!isLoading) {
                 // Only clear state if we are done loading and truly logged out
                 // Prevents clearing during the split-second "loading" phase

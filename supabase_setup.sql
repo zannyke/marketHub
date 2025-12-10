@@ -62,6 +62,10 @@ begin
 end;
 $$;
 
+-- Grant permissions for valid users to call the function
+grant execute on function public.track_user_login(text) to authenticated;
+grant execute on function public.track_user_login(text) to service_role;
+
 -- 4. Auto-create Profile on Sign Up (Trigger)
 --    - Ensures a profile exists immediately after sign up, even before first login
 create or replace function public.handle_new_user()
