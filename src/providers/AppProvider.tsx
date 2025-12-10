@@ -23,6 +23,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+    const supabase = createClient();
     const [theme, setTheme] = useState<Theme>("light");
     const [role, _setRole] = useState<Role>("buyer");
     const [cartCount, setCartCount] = useState(0);
@@ -45,8 +46,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             }
         }
     }, [user, supabase]);
-
-    const supabase = createClient();
 
     // Initialize theme
     useEffect(() => {
