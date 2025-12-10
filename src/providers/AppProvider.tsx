@@ -13,8 +13,11 @@ interface AppContextType {
     toggleTheme: () => void;
     role: Role;
     setRole: (role: Role) => void;
+    cartItems: any[];
+    removeFromCart: (productId: string) => Promise<void>;
+    updateQuantity: (productId: string, quantity: number) => Promise<void>;
     cartCount: number;
-    addToCart: (item?: any) => Promise<void>;
+    addToCart: (item: any) => Promise<void>;
     user: User | null;
     isLoading: boolean;
     signOut: () => Promise<void>;
@@ -26,21 +29,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
     const [theme, setTheme] = useState<Theme>("light");
     const [role, _setRole] = useState<Role>("buyer");
-    const [cartCount, setCartCount] = useState(0);
+    const [cartItems, setCartItems] = useState<any[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const cartCount = React.useMemo(() => cartItems.reduce((acc, item) => acc + item.quantity, 0), [cartItems]);
+
     // Persist role changes to Supabase
     const setRole = React.useCallback(async (newRole: Role) => {
-        // 1. Optimistic Update
         _setRole(newRole);
-
-        // 2. Persist to User Metadata
         if (user) {
             try {
-                await supabase.auth.updateUser({
-                    data: { role: newRole }
-                });
+                await supabase.auth.updateUser({ data: { role: newRole } });
             } catch (err) {
                 console.error("Failed to persist role:", err);
             }
@@ -52,9 +52,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const savedTheme = localStorage.getItem("theme") as Theme;
         if (savedTheme) {
             setTheme(savedTheme);
-            if (savedTheme === "dark") {
-                document.documentElement.classList.add("dark");
-            }
+            if (savedTheme === "dark") document.documentElement.classList.add("dark");
         }
     }, []);
 
@@ -64,56 +62,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         const initializeApp = async () => {
             try {
-                // Get Session with a timeout race to prevent hanging
+                // Get Session with a timeout race
                 const sessionPromise = supabase.auth.getSession();
                 const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject("Timeout"), 5000));
-
                 // @ts-ignore
                 const { data } = await Promise.race([sessionPromise, timeoutPromise]).catch(() => ({ data: { session: null } }));
                 const session = data?.session;
-
-                console.log("AppProvider: Session check result:", session ? "Found User" : "No User", session?.user?.email);
-
                 let activeUser = session?.user ?? null;
 
-                // Manual Recovery for "Hanging SDK" workaround
+                // Manual Recovery
                 if (!activeUser) {
-                    console.log("AppProvider: No active user from SDK, attempting manual recovery...");
                     try {
                         const backupKey = 'market-hub-auth-backup';
                         const stored = localStorage.getItem(backupKey);
-                        console.log("AppProvider: Reading backup key:", backupKey, "Found?", !!stored);
-
                         if (stored) {
-                            console.log("Attempting session recovery from storage...");
                             const tokenData = JSON.parse(stored);
                             const { data: recovered } = await supabase.auth.setSession({
                                 access_token: tokenData.access_token,
                                 refresh_token: tokenData.refresh_token
                             });
-
                             if (recovered.session) {
                                 activeUser = recovered.session.user;
-                                console.log("Session recovered successfully!", activeUser.email);
-                                // Restore the SDK key if it was lost
                                 localStorage.setItem('market-hub-auth', stored);
-                            } else {
-                                console.log("AppProvider: Recovery failed - setSession returned no session");
                             }
                         }
-                    } catch (recErr) {
-                        console.error("Recovery failed:", recErr);
-                    }
+                    } catch (recErr) { console.error("Recovery failed:", recErr); }
                 }
 
                 if (mounted) {
                     setUser(activeUser);
-
                     if (activeUser) {
                         const metaRole = activeUser.user_metadata?.role as Role;
                         if (metaRole) _setRole(metaRole);
-
-                        await fetchCartCount(activeUser.id);
+                        await fetchCart(activeUser.id);
                     }
                 }
             } catch (error) {
@@ -125,36 +106,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         initializeApp();
 
-        // Fail-safe: Force stop loading after 3s if Supabase sdk completely hangs
-        const maxWait = setTimeout(() => {
-            if (mounted) setIsLoading(false);
-        }, 3000);
+        const maxWait = setTimeout(() => { if (mounted) setIsLoading(false); }, 3000);
 
-        // Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (!mounted) return;
-
             const currentUser = session?.user ?? null;
             setUser(currentUser);
 
             if (currentUser) {
                 const metaRole = currentUser.user_metadata?.role as Role;
                 if (metaRole) _setRole(metaRole);
-
-                await fetchCartCount(currentUser.id);
-
-                // Track Login Stats (Only on explicit sign-in or initial session load)
+                await fetchCart(currentUser.id);
                 if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
                     try {
                         const location = Intl.DateTimeFormat().resolvedOptions().timeZone;
                         await supabase.rpc('track_user_login', { user_location: location });
-                    } catch (err) {
-                        console.error("Failed to track login:", err);
-                    }
+                    } catch (err) { console.error("Failed to track login:", err); }
                 }
             } else {
-                _setRole("buyer"); // Reset role to default on logout
-                setCartCount(0);
+                _setRole("buyer");
+                setCartItems([]);
             }
         });
 
@@ -165,18 +136,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         };
     }, []);
 
-    const fetchCartCount = async (userId: string) => {
+    const fetchCart = async (userId: string) => {
         try {
-            const { count, error } = await supabase
+            const { data, error } = await supabase
                 .from('cart_items')
-                .select('*', { count: 'exact', head: true })
+                .select('*')
                 .eq('user_id', userId);
 
-            if (!error && count !== null) {
-                setCartCount(count);
+            if (!error && data) {
+                setCartItems(data.map(item => ({
+                    ...item.product_metadata,
+                    quantity: item.quantity,
+                    dbId: item.id, // Keep track of DB row ID
+                    productId: item.product_id
+                })));
             }
         } catch (e) {
-            console.error("Failed to fetch cart count", e);
+            console.error("Failed to fetch cart", e);
         }
     };
 
@@ -184,29 +160,70 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setTheme((prev) => {
             const newTheme = prev === "light" ? "dark" : "light";
             localStorage.setItem("theme", newTheme);
-            if (newTheme === "dark") {
-                document.documentElement.classList.add("dark");
-            } else {
-                document.documentElement.classList.remove("dark");
-            }
+            if (newTheme === "dark") document.documentElement.classList.add("dark");
+            else document.documentElement.classList.remove("dark");
             return newTheme;
         });
     }, []);
 
-    const addToCart = React.useCallback(async (item?: any) => {
-        // Optimistic update
-        setCartCount((prev) => prev + 1);
+    const addToCart = React.useCallback(async (item: any) => {
+        const productId = item.id.toString();
 
-        if (user && item) {
+        // Optimistic Update
+        setCartItems(prev => {
+            const existing = prev.find(p => p.productId === productId);
+            if (existing) {
+                return prev.map(p => p.productId === productId ? { ...p, quantity: p.quantity + 1 } : p);
+            }
+            return [...prev, { ...item, quantity: 1, productId }];
+        });
+
+        if (user) {
             try {
-                await supabase.from('cart_items').insert({
-                    user_id: user.id,
-                    product_id: item.id.toString(), // ensuring string
-                    quantity: 1,
-                    product_metadata: item
-                });
+                // Check if exists in DB first (to avoid constraint errors if unique index exists, or just logic)
+                const { data: existing } = await supabase.from('cart_items').select('id, quantity').eq('user_id', user.id).eq('product_id', productId).single();
+
+                if (existing) {
+                    await supabase.from('cart_items').update({ quantity: existing.quantity + 1 }).eq('id', existing.id);
+                } else {
+                    const { data: newItem } = await supabase.from('cart_items').insert({
+                        user_id: user.id,
+                        product_id: productId,
+                        quantity: 1,
+                        product_metadata: item
+                    }).select().single();
+
+                    // Update state with real DB ID if needed
+                    if (newItem) fetchCart(user.id);
+                }
             } catch (error) {
                 console.error("Error adding to DB cart:", error);
+            }
+        }
+    }, [user]);
+
+    const removeFromCart = React.useCallback(async (productId: string) => {
+        setCartItems(prev => prev.filter(item => item.productId !== productId));
+
+        if (user) {
+            try {
+                await supabase.from('cart_items').delete().eq('user_id', user.id).eq('product_id', productId);
+            } catch (error) {
+                console.error("Error removing from cart:", error);
+            }
+        }
+    }, [user]);
+
+    const updateQuantity = React.useCallback(async (productId: string, quantity: number) => {
+        if (quantity < 1) return;
+
+        setCartItems(prev => prev.map(item => item.productId === productId ? { ...item, quantity } : item));
+
+        if (user) {
+            try {
+                await supabase.from('cart_items').update({ quantity }).eq('user_id', user.id).eq('product_id', productId);
+            } catch (error) {
+                console.error("Error updating cart quantity:", error);
             }
         }
     }, [user]);
@@ -214,33 +231,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const signOut = React.useCallback(async () => {
         try {
             await supabase.auth.signOut();
-
-            // Clear Manual Recovery Key
             const projectId = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1].split('.')[0];
-            if (projectId) {
-                const key = `sb-${projectId}-auth-token`;
-                localStorage.removeItem(key);
-            }
-        } catch (error) {
-            console.error("Error signing out:", error);
-        } finally {
+            if (projectId) localStorage.removeItem(`sb-${projectId}-auth-token`);
+        } catch (error) { console.error("Error signing out:", error); }
+        finally {
             setUser(null);
-            setCartCount(0);
+            setCartItems([]);
         }
     }, [supabase]);
 
     const value = React.useMemo(() => ({
-        supabase, // Expose shared client
-        theme,
-        toggleTheme,
-        role,
-        setRole,
-        cartCount,
-        addToCart,
-        user,
-        isLoading,
-        signOut
-    }), [supabase, theme, role, cartCount, addToCart, user, isLoading, toggleTheme, signOut]);
+        supabase, theme, toggleTheme, role, setRole,
+        cartCount, cartItems, addToCart, removeFromCart, updateQuantity,
+        user, isLoading, signOut
+    }), [supabase, theme, role, cartCount, cartItems, addToCart, removeFromCart, updateQuantity, user, isLoading, toggleTheme, signOut]);
 
     return (
         <AppContext.Provider value={value}>
