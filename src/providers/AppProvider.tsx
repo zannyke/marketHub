@@ -105,7 +105,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         };
 
         const initializeFlow = async () => {
-            const activeUser = await checkUserSession(); // This handles all checks
+            // Race checkUserSession against a 4-second timeout to prevent indefinite loading screen
+            const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 4000));
+
+            const activeUser = await Promise.race([
+                checkUserSession(),
+                timeoutPromise
+            ]) as User | null;
 
             if (mounted) {
                 if (activeUser) {
