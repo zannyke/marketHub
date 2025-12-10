@@ -17,13 +17,13 @@ export default function Home() {
 
         <div className="container mx-auto px-4 flex flex-col items-center relative z-10 text-center">
           {user ? (
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-sm font-medium mb-8 animate-fade-in-up">
-              <span className="flex h-2 w-2 rounded-full bg-teal-500"></span>
+            <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-teal-50 border border-teal-100 text-teal-800 text-lg font-medium mb-8 animate-fade-in-up">
+              <span className="flex h-3 w-3 rounded-full bg-teal-500"></span>
               Welcome back, {user.email?.split('@')[0]}!
             </div>
           ) : (
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-sm font-medium mb-8 animate-fade-in-up">
-              <span className="flex h-2 w-2 rounded-full bg-teal-500"></span>
+            <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-teal-50 border border-teal-100 text-teal-800 text-lg font-medium mb-8 animate-fade-in-up">
+              <span className="flex h-3 w-3 rounded-full bg-teal-500"></span>
               Welcome to the future of shopping
             </div>
           )}
