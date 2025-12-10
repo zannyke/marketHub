@@ -22,46 +22,74 @@ export default function LoginPage() {
         setLoading(true);
         setError(null);
         setLogs([]);
-        addLog("Starting standardized login...");
+        addLog("Starting login process...");
 
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
 
-        try {
-            // Set a timeout for the Supabase call
-            const authPromise = supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
+        // Helper to handle success
+        const handleSuccess = () => {
+            addLog("Login Success! Redirecting...");
+            window.location.href = "/?welcome=true";
+        };
 
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Login timed out. Please try again.")), 15000)
-            );
+        try {
+            // STRATEGY 1: Standard SDK Login
+            const sdkPromise = supabase.auth.signInWithPassword({ email, password });
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("SDK Timeout")), 10000));
 
             // @ts-ignore
-            const { data, error } = await Promise.race([authPromise, timeoutPromise]);
+            const { data, error } = await Promise.race([sdkPromise, timeoutPromise]);
 
-            if (error) {
-                addLog(`Auth Error: ${error.message}`);
-                setError(error.message === "Invalid login credentials" ? "Invalid email or password" : error.message);
-                setLoading(false);
+            if (!error && data?.session) {
+                handleSuccess();
                 return;
             }
 
-            if (data?.session) {
-                addLog("Login Success! Session active.");
-                // Successful login
-                // We use window.location to force a full refresh and ensure AppProvider picks up the new session cleanly
-                window.location.href = "/?welcome=true";
-            } else {
-                setError("Login failed. Please check your credentials.");
+            if (error) throw error; // If strict error, throw to catch block (or maybe fallback?)
+
+        } catch (sdkError: any) {
+            console.warn("SDK Login failed/timed out, attempting Raw REST fallback...", sdkError);
+            addLog(`SDK failed (${sdkError.message}). Trying fallback...`);
+
+            // STRATEGY 2: Raw REST Fallback
+            try {
+                const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+                const sbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+                if (!sbUrl || !sbKey) throw new Error("Missing Supabase Config");
+
+                const res = await fetch(`${sbUrl}/auth/v1/token?grant_type=password`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "apikey": sbKey
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error_description || "Login failed");
+                }
+
+                // Manually set session
+                const { error: sessionError } = await supabase.auth.setSession({
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token
+                });
+
+                if (sessionError) throw sessionError;
+
+                handleSuccess();
+
+            } catch (fallbackError: any) {
+                console.error("All login attempts failed", fallbackError);
+                setError(fallbackError.message || "Unable to log in. Please check your connection.");
                 setLoading(false);
             }
-        } catch (err: any) {
-            console.error("Login exception:", err);
-            setError(err.message || "An unexpected error occurred");
-            setLoading(false);
         }
     }
 
