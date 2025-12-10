@@ -1,3 +1,7 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+import { Header } from "@/components/layout/Header";
 import { useApp } from "@/providers/AppProvider";
 import { Loader2 } from "lucide-react";
 
