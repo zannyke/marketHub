@@ -4,11 +4,23 @@ import React, { useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
-import { Star } from 'lucide-react';
+import { Star, Plus, Minus, Trash2 } from 'lucide-react';
 import { generateProducts } from "@/lib/products";
 
-// Memoized Product Card to prevent re-renders of the entire grid
-const ProductCard = React.memo(({ item, onAdd }: { item: any, onAdd: (item: any) => void }) => {
+// Memoized Product Card
+const ProductCard = React.memo(({
+    item,
+    onAdd,
+    onRemove,
+    onUpdateQty,
+    cartItem
+}: {
+    item: any,
+    onAdd: (item: any) => void,
+    onRemove: (id: string) => void,
+    onUpdateQty: (id: string, qty: number) => void,
+    cartItem?: any
+}) => {
     return (
         <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group">
             {/* Image Area */}
@@ -44,8 +56,6 @@ const ProductCard = React.memo(({ item, onAdd }: { item: any, onAdd: (item: any)
                     </div>
                     <span className="text-xs text-slate-400">•</span>
                     <span className="text-xs text-slate-500 dark:text-slate-400">{item.reviews} reviews</span>
-                    <span className="text-xs text-slate-400">•</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[80px]">{item.seller}</span>
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between gap-3">
@@ -53,13 +63,43 @@ const ProductCard = React.memo(({ item, onAdd }: { item: any, onAdd: (item: any)
                         <span className="text-xs text-slate-400 line-through decoration-slate-300 dark:decoration-slate-600">${item.oldPrice.toFixed(2)}</span>
                         <span className="text-xl font-bold text-slate-900 dark:text-white">${item.price.toFixed(2)}</span>
                     </div>
-                    <Button
-                        size="sm"
-                        onClick={() => onAdd(item)}
-                        className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-full px-5 h-9 shadow-none transition-colors active:scale-95"
-                    >
-                        Add
-                    </Button>
+
+                    {cartItem ? (
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full h-9 px-1">
+                                <button
+                                    onClick={() => onUpdateQty(cartItem.productId, cartItem.quantity - 1)}
+                                    className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                                    disabled={cartItem.quantity <= 1}
+                                >
+                                    <Minus size={12} className="text-slate-600 dark:text-slate-300" />
+                                </button>
+                                <span className="text-xs font-bold w-6 text-center text-slate-900 dark:text-white">{cartItem.quantity}</span>
+                                <button
+                                    onClick={() => onUpdateQty(cartItem.productId, cartItem.quantity + 1)}
+                                    className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                                >
+                                    <Plus size={12} className="text-slate-600 dark:text-slate-300" />
+                                </button>
+                            </div>
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => onRemove(cartItem.productId)}
+                                className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+                            >
+                                <Trash2 size={16} />
+                            </Button>
+                        </div>
+                    ) : (
+                        <Button
+                            size="sm"
+                            onClick={() => onAdd(item)}
+                            className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-full px-5 h-9 shadow-none transition-colors active:scale-95"
+                        >
+                            Add
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
@@ -69,10 +109,10 @@ const ProductCard = React.memo(({ item, onAdd }: { item: any, onAdd: (item: any)
 ProductCard.displayName = "ProductCard";
 
 function MarketplaceContent() {
-    const { addToCart } = useApp();
+    const { addToCart, cartItems, removeFromCart, updateQuantity } = useApp();
     const searchParams = useSearchParams();
     const category = searchParams.get('cat');
-    // ... rest of the component logic ...(use existing)
+
     // Generate and Filter Products
     const products = useMemo(() => {
         const allProducts = generateProducts(1001);
@@ -82,14 +122,9 @@ function MarketplaceContent() {
 
         return allProducts.filter(item => {
             const itemCat = item.category.toLowerCase();
-
-            // Debug log to console to verify filtering
-            // console.log(`Checking ${item.title} (${itemCat}) against ${target}`);
-
             if (target === 'trending') return item.tag === 'Hot';
             if (target === 'gadgets') return itemCat === 'electronics';
-            if (target === 'home') return itemCat.includes('home'); // matches "Home"
-
+            if (target === 'home') return itemCat.includes('home');
             return itemCat === target || itemCat.includes(target);
         });
     }, [category]);
@@ -117,9 +152,19 @@ function MarketplaceContent() {
                 {/* Grid */}
                 {products.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {products.map((item) => (
-                            <ProductCard key={item.id} item={item} onAdd={addToCart} />
-                        ))}
+                        {products.map((item) => {
+                            const cartItem = cartItems.find(c => c.productId === item.id.toString());
+                            return (
+                                <ProductCard
+                                    key={item.id}
+                                    item={item}
+                                    onAdd={addToCart}
+                                    cartItem={cartItem}
+                                    onRemove={removeFromCart}
+                                    onUpdateQty={updateQuantity}
+                                />
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="text-center py-20 text-slate-500">
