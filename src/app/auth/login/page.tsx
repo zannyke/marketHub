@@ -87,22 +87,27 @@ export default function LoginPage() {
 
             addLog("Raw Login Success! Got Token.");
 
-            // 2. Hydrate the session into the SDK so the rest of the app knows
-            addLog("Hydrating session...");
-            const { error: sessionError } = await supabase.auth.setSession({
-                access_token: data.access_token,
-                refresh_token: data.refresh_token
-            });
+            // 3. MANUAL STORAGE SAVE (Bypassing SDK Hydration Lock)
+            // The SDK hangs on setSession, so we save the token directly to LocalStorage
+            // where the SDK expects it to be on the next load.
+            try {
+                // Extract project ref (e.g., https://xyz.supabase.co -> xyz)
+                const projectId = sbUrl.split("//")[1].split(".")[0];
+                const storageKey = `sb-${projectId}-auth-token`;
 
-            if (sessionError) {
-                addLog(`Session Hydration Failed: ${sessionError.message}`);
-                // Even if hydration fails, we have the token. 
-                // We could manually save to localStorage as a fallback, but let's see.
-                throw sessionError;
+                addLog(`Saving to storage key: ${storageKey}`);
+                localStorage.setItem(storageKey, JSON.stringify(data));
+
+                addLog("Manual Save Successful.");
+            } catch (storageErr: any) {
+                addLog(`Manual Save Failed: ${storageErr.message}`);
+                // Proceed anyway, maybe strict mode?
             }
 
             clearTimeout(timeoutId);
-            addLog("Session active. Redirecting...");
+            addLog("Redirecting...");
+
+            // Force reload to pick up the new localStorage token
             window.location.assign("/?welcome=true");
 
         } catch (err: any) {
