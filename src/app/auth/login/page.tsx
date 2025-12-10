@@ -23,22 +23,34 @@ export default function LoginPage() {
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
 
+        // Safety timeout in case network hangs
+        const timeoutId = setTimeout(() => {
+            setLoading(false);
+            setError("Login request timed out. Please check your connection.");
+        }, 15000);
+
         try {
+            console.log("Attempting login...");
             const { error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
+            clearTimeout(timeoutId);
+
             if (error) {
+                console.error("Login error:", error);
                 setError(error.message);
                 setLoading(false);
             } else {
-                // Force a hard redirect to ensure all auth states are fresh
-                window.location.href = "/?welcome=true";
+                console.log("Login successful, redirecting...");
+                // Use assign for a definite navigation
+                window.location.assign("/?welcome=true");
             }
         } catch (err) {
+            clearTimeout(timeoutId);
+            console.error("Unexpected error:", err);
             setError("An unexpected error occurred");
-        } finally {
             setLoading(false);
         }
     }
