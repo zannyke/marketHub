@@ -67,10 +67,30 @@ const ProductCard = React.memo(({ item, onAdd }: { item: any, onAdd: (item: any)
 
 ProductCard.displayName = "ProductCard";
 
-export default function Marketplace() {
+// ProductCard ... (unchanged)
+
+export default function Marketplace({ searchParams }: { searchParams: { cat?: string } }) {
     const { addToCart } = useApp();
-    // Generate products for testing
-    const products = useMemo(() => generateProducts(1001), []);
+    const category = searchParams?.cat;
+
+    // Generate and Filter Products
+    const products = useMemo(() => {
+        const allProducts = generateProducts(1001);
+        if (!category) return allProducts;
+
+        // Map UI categories to generator categories if needed, or just case-insensitive match
+        // Generator categories: "Electronics", "Fashion", "Home", "Sports", "Toys" (based on typical implementation)
+        // Access URL params: "electronics", "fashion", "home", "gadgets" -> "Electronics"
+
+        const target = category.toLowerCase();
+        return allProducts.filter(item => {
+            const itemCat = item.category.toLowerCase();
+            if (target === 'trending') return item.tag === 'Hot'; // Special case for "Trending"
+            if (target === 'gadgets') return itemCat === 'electronics'; // Map gadgets to electronics
+            if (target === 'home') return itemCat.includes('home');
+            return itemCat.includes(target);
+        });
+    }, [category]);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 pt-6 pb-24">
@@ -78,7 +98,12 @@ export default function Marketplace() {
             {/* Header / Filter Bar Placeholder */}
             <div className="sticky top-[73px] z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 mb-6">
                 <div className="container mx-auto flex items-center justify-between">
-                    <h1 className="font-bold text-lg text-slate-900 dark:text-white">Marketplace</h1>
+                    <div className="flex items-baseline gap-4">
+                        <h1 className="font-bold text-lg text-slate-900 dark:text-white">
+                            {category ? <span className="capitalize">{category} Collection</span> : 'Marketplace'}
+                        </h1>
+                        <span className="text-xs text-slate-500">{products.length} Items</span>
+                    </div>
                     <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="hidden sm:flex border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">Filters</Button>
                         <Button variant="outline" size="sm" className="hidden sm:flex border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">Sort: Popular</Button>
@@ -88,11 +113,18 @@ export default function Marketplace() {
 
             <div className="container mx-auto px-4 pb-12">
                 {/* Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {products.map((item) => (
-                        <ProductCard key={item.id} item={item} onAdd={addToCart} />
-                    ))}
-                </div>
+                {products.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {products.map((item) => (
+                            <ProductCard key={item.id} item={item} onAdd={addToCart} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-20 text-slate-500">
+                        <p>No products found in this category.</p>
+                        <Button variant="link" onClick={() => window.location.href = '/marketplace'}>View All</Button>
+                    </div>
+                )}
             </div>
         </div>
     );

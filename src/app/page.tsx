@@ -95,18 +95,18 @@ export default function Home() {
 
           {/* Trust Badges */}
           <div className="grid grid-cols-3 gap-8 md:gap-16 text-center border-t border-slate-100 pt-12">
-            <div className="flex flex-col items-center gap-2">
-              <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl mb-2"><ShieldCheck size={24} /></div>
+            <Link href="/features/verified-sellers" className="flex flex-col items-center gap-2 hover:bg-slate-50 p-4 rounded-xl transition-all cursor-pointer group">
+              <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl mb-2 group-hover:scale-110 transition-transform"><ShieldCheck size={24} /></div>
               <span className="font-bold text-slate-900">Verified Sellers</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl mb-2"><Truck size={24} /></div>
+            </Link>
+            <Link href="/features/global-shipping" className="flex flex-col items-center gap-2 hover:bg-slate-50 p-4 rounded-xl transition-all cursor-pointer group">
+              <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl mb-2 group-hover:scale-110 transition-transform"><Truck size={24} /></div>
               <span className="font-bold text-slate-900">Global Shipping</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl mb-2"><Heart size={24} /></div>
+            </Link>
+            <Link href="/features/curated-quality" className="flex flex-col items-center gap-2 hover:bg-slate-50 p-4 rounded-xl transition-all cursor-pointer group">
+              <div className="p-3 bg-teal-50 text-teal-600 rounded-2xl mb-2 group-hover:scale-110 transition-transform"><Heart size={24} /></div>
               <span className="font-bold text-slate-900">Curated Quality</span>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

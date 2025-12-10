@@ -166,9 +166,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }, [user]);
 
     const signOut = React.useCallback(async () => {
-        await supabase.auth.signOut();
-        setCartCount(0);
-    }, []);
+        try {
+            await supabase.auth.signOut();
+
+            // Clear Manual Recovery Key
+            const projectId = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1].split('.')[0];
+            if (projectId) {
+                const key = `sb-${projectId}-auth-token`;
+                localStorage.removeItem(key);
+            }
+        } catch (error) {
+            console.error("Error signing out:", error);
+        } finally {
+            setUser(null);
+            setCartCount(0);
+        }
+    }, [supabase]);
 
     const value = React.useMemo(() => ({
         supabase, // Expose shared client
