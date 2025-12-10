@@ -168,18 +168,11 @@ export const Header = () => {
 
                                     {/* Settings Section */}
                                     <div className="p-1">
-                                        <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
-                                            <Settings size={16} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" /> Settings
-                                        </button>
-                                        <button
-                                            onClick={toggleTheme}
-                                            className="w-full flex items-center justify-between px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                {theme === 'dark' ? <Moon size={16} className="text-purple-500" /> : <Sun size={16} className="text-amber-500" />}
-                                                <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
-                                            </div>
-                                        </button>
+                                        <Link href="/settings" onClick={() => setIsMenuOpen(false)}>
+                                            <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
+                                                <Settings size={16} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" /> Settings
+                                            </button>
+                                        </Link>
                                         <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
                                             <HelpCircle size={16} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" /> Support
                                         </button>
