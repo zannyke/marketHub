@@ -67,27 +67,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 if (!activeUser) {
                     console.log("AppProvider: No active user from SDK, attempting manual recovery...");
                     try {
-                        const projectId = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1].split('.')[0];
-                        console.log("AppProvider: Detected Project ID:", projectId);
+                        const key = 'market-hub-auth';
+                        const stored = localStorage.getItem(key);
+                        console.log("AppProvider: Storage key:", key, "Found token?", !!stored);
 
-                        if (projectId) {
-                            const key = `sb-${projectId}-auth-token`;
-                            const stored = localStorage.getItem(key);
-                            console.log("AppProvider: Storage key:", key, "Found token?", !!stored);
-
-                            if (stored) {
-                                console.log("Attempting session recovery from storage...");
-                                const tokenData = JSON.parse(stored);
-                                const { data: recovered } = await supabase.auth.setSession({
-                                    access_token: tokenData.access_token,
-                                    refresh_token: tokenData.refresh_token
-                                });
-                                if (recovered.session) {
-                                    activeUser = recovered.session.user;
-                                    console.log("Session recovered successfully!", activeUser.email);
-                                } else {
-                                    console.log("AppProvider: Recovery failed - setSession returned no session");
-                                }
+                        if (stored) {
+                            console.log("Attempting session recovery from storage...");
+                            const tokenData = JSON.parse(stored);
+                            const { data: recovered } = await supabase.auth.setSession({
+                                access_token: tokenData.access_token,
+                                refresh_token: tokenData.refresh_token
+                            });
+                            if (recovered.session) {
+                                activeUser = recovered.session.user;
+                                console.log("Session recovered successfully!", activeUser.email);
+                            } else {
+                                console.log("AppProvider: Recovery failed - setSession returned no session");
                             }
                         }
                     } catch (recErr) {

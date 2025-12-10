@@ -91,9 +91,8 @@ export default function LoginPage() {
             // The SDK hangs on setSession, so we save the token directly to LocalStorage
             // where the SDK expects it to be on the next load.
             try {
-                // Extract project ref (e.g., https://xyz.supabase.co -> xyz)
-                const projectId = sbUrl.split("//")[1].split(".")[0];
-                const storageKey = `sb-${projectId}-auth-token`;
+                // FIXED: Use constant key to match client.ts config
+                const storageKey = 'market-hub-auth';
 
                 addLog(`Saving to storage key: ${storageKey}`);
                 localStorage.setItem(storageKey, JSON.stringify(data));
