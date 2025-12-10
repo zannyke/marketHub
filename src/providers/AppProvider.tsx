@@ -144,12 +144,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 .eq('user_id', userId);
 
             if (!error && data) {
-                setCartItems(data.map(item => ({
-                    ...item.product_metadata,
-                    quantity: item.quantity,
-                    dbId: item.id, // Keep track of DB row ID
-                    productId: item.product_id
-                })));
+                // Deduplicate and aggregate
+                const uniqueItemsMap = new Map();
+                const duplicatesToDelete: string[] = [];
+                const updatesToPerform: { id: string, quantity: number }[] = [];
+
+                data.forEach(item => {
+                    const pid = item.product_id;
+                    if (uniqueItemsMap.has(pid)) {
+                        // Found duplicate
+                        const existing = uniqueItemsMap.get(pid);
+                        existing.quantity += item.quantity; // Sum quantity
+                        duplicatesToDelete.push(item.id); // Mark for deletion
+                        // Mark existing for update to save new sum
+                        const pendingUpdate = updatesToPerform.find(u => u.id === existing.dbId);
+                        if (pendingUpdate) {
+                            pendingUpdate.quantity = existing.quantity;
+                        } else {
+                            updatesToPerform.push({ id: existing.dbId, quantity: existing.quantity });
+                        }
+                    } else {
+                        // New unique item
+                        uniqueItemsMap.set(pid, {
+                            ...item.product_metadata,
+                            quantity: item.quantity,
+                            dbId: item.id,
+                            productId: item.product_id
+                        });
+                    }
+                });
+
+                // Set State with clean unique items
+                setCartItems(Array.from(uniqueItemsMap.values()));
+
+                // Self-Healing: Clean up DB in background
+                if (duplicatesToDelete.length > 0 || updatesToPerform.length > 0) {
+                    // 1. Update summed quantities
+                    for (const update of updatesToPerform) {
+                        await supabase.from('cart_items').update({ quantity: update.quantity }).eq('id', update.id);
+                    }
+                    // 2. Delete duplicates
+                    if (duplicatesToDelete.length > 0) {
+                        await supabase.from('cart_items').delete().in('id', duplicatesToDelete);
+                    }
+                }
             }
         } catch (e) {
             console.error("Failed to fetch cart", e);
@@ -180,8 +218,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         if (user) {
             try {
-                // Check if exists in DB first (to avoid constraint errors if unique index exists, or just logic)
-                const { data: existing } = await supabase.from('cart_items').select('id, quantity').eq('user_id', user.id).eq('product_id', productId).single();
+                // Check if exists using maybeSingle to handle potential duplicates safely
+                const { data: existing } = await supabase
+                    .from('cart_items')
+                    .select('id, quantity')
+                    .eq('user_id', user.id)
+                    .eq('product_id', productId)
+                    .maybeSingle();
 
                 if (existing) {
                     await supabase.from('cart_items').update({ quantity: existing.quantity + 1 }).eq('id', existing.id);
@@ -193,7 +236,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                         product_metadata: item
                     }).select().single();
 
-                    // Update state with real DB ID if needed
                     if (newItem) fetchCart(user.id);
                 }
             } catch (error) {
@@ -207,6 +249,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         if (user) {
             try {
+                // Delete ALL rows for this product to ensure deep clean
                 await supabase.from('cart_items').delete().eq('user_id', user.id).eq('product_id', productId);
             } catch (error) {
                 console.error("Error removing from cart:", error);
@@ -221,6 +264,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         if (user) {
             try {
+                // Update specific product rows. If duplicates exist that fetchCart hasn't cleaned yet, this updates all of them.
+                // Ideally, fetchCart cleans this up on load.
                 await supabase.from('cart_items').update({ quantity }).eq('user_id', user.id).eq('product_id', productId);
             } catch (error) {
                 console.error("Error updating cart quantity:", error);
