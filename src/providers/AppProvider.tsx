@@ -67,8 +67,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         // Listen for Auth Changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             setUser(session?.user ?? null);
+
             if (session?.user) {
                 await fetchCartCount(session.user.id);
+
+                // Track Login Stats (Only on explicit sign-in or initial session load)
+                if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+                    try {
+                        const location = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        await supabase.rpc('track_user_login', { user_location: location });
+                    } catch (err) {
+                        console.error("Failed to track login:", err);
+                    }
+                }
             } else {
                 setCartCount(0);
             }
