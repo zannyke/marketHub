@@ -45,10 +45,10 @@ export const Header = () => {
     };
 
     const handleSignOut = async () => {
+        console.log("User clicked Log Out");
         await signOut();
         setIsMenuOpen(false);
-        router.push('/');
-        router.refresh();
+        // AppProvider handles the redirect for a clean state
     };
 
     const getInitials = (user: any) => {
