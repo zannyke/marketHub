@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ShoppingBag, Truck, CheckCircle, Zap, Star, Heart, Flame, ShieldCheck, User } from "lucide-react";
@@ -7,12 +8,44 @@ import { Footer } from "@/components/layout/Footer";
 import { useApp } from "@/providers/AppProvider";
 
 export default function Home() {
-  const { user, isLoading } = useApp();
+  const [showWelcome, setShowWelcome] = useState(false);
+  const { user } = useApp();
+
+  useEffect(() => {
+    // Check if we just logged in
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('welcome') === 'true') {
+      setShowWelcome(true);
+      // Clean URL without refresh
+      window.history.replaceState({}, document.title, "/");
+      // Auto hide after 5 seconds
+      setTimeout(() => setShowWelcome(false), 5000);
+    }
+  }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-slate-50 relative">
+      {/* Welcome Toast */}
+      {showWelcome && (
+        <div className="fixed top-24 right-4 z-50 animate-in slide-in-from-right-full fade-in duration-500">
+          <div className="bg-white/90 backdrop-blur-md border-l-4 border-teal-500 shadow-2xl rounded-xl p-4 flex items-start gap-4 max-w-sm">
+            <div className="bg-teal-100 p-2 rounded-full text-teal-600 shrink-0">
+              <CheckCircle size={20} />
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-900">Successfully Signed In!</h4>
+              <p className="text-sm text-slate-500 mt-1">Welcome back to MarketHub. We missed you!</p>
+            </div>
+            <button onClick={() => setShowWelcome(false)} className="text-slate-400 hover:text-slate-600">
+              <ArrowRight size={14} className="rotate-45" /> {/* Close icon visual using arrow for now or just X */}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-12 pb-24 md:pt-32 md:pb-40 bg-white">
+        {/* ... existing hero code ... */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#f0f9ff_1px,transparent_1px),linear-gradient(to_bottom,#f0f9ff_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30" />
 
         <div className="container mx-auto px-4 flex flex-col items-center relative z-10 text-center">

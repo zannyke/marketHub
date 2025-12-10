@@ -34,7 +34,7 @@ export default function LoginPage() {
                 setLoading(false);
             } else {
                 // Force a hard redirect to ensure all auth states are fresh
-                window.location.href = "/";
+                window.location.href = "/?welcome=true";
             }
         } catch (err) {
             setError("An unexpected error occurred");
