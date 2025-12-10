@@ -61,26 +61,50 @@ export default function LoginPage() {
         }, 8000);
 
         try {
-            addLog("Calling supabase.auth.signInWithPassword...");
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
+            addLog("Attempting RAW NETWORK LOGIN (Bypassing SDK)...");
+
+            // 1. Direct REST Call to Supabase Auth API
+            const authUrl = `${sbUrl}/auth/v1/token?grant_type=password`;
+            const res = await fetch(authUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+                },
+                body: JSON.stringify({ email, password })
             });
 
-            clearTimeout(timeoutId);
-            addLog("Supabase call returned.");
+            const data = await res.json();
 
-            if (error) {
-                console.error("Login error:", error);
-                setError(error.message);
-                addLog(`Error: ${error.message}`);
+            if (!res.ok) {
+                addLog(`Raw Auth Failed: ${res.status}`);
+                addLog(`Message: ${data.error_description || data.msg || "Unknown error"}`);
+                setError(data.error_description || "Login failed");
                 setLoading(false);
-            } else {
-                console.log("Login successful, redirecting...");
-                addLog("Success! Redirecting...");
-                // Use assign for a definite navigation
-                window.location.assign("/?welcome=true");
+                clearTimeout(timeoutId);
+                return;
             }
+
+            addLog("Raw Login Success! Got Token.");
+
+            // 2. Hydrate the session into the SDK so the rest of the app knows
+            addLog("Hydrating session...");
+            const { error: sessionError } = await supabase.auth.setSession({
+                access_token: data.access_token,
+                refresh_token: data.refresh_token
+            });
+
+            if (sessionError) {
+                addLog(`Session Hydration Failed: ${sessionError.message}`);
+                // Even if hydration fails, we have the token. 
+                // We could manually save to localStorage as a fallback, but let's see.
+                throw sessionError;
+            }
+
+            clearTimeout(timeoutId);
+            addLog("Session active. Redirecting...");
+            window.location.assign("/?welcome=true");
+
         } catch (err: any) {
             clearTimeout(timeoutId);
             console.error("Unexpected error:", err);
