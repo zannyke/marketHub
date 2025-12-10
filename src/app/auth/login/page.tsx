@@ -13,44 +13,60 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const supabase = createClient();
+    const [logs, setLogs] = useState<string[]>([]);
+
+    const addLog = (msg: string) => setLogs(prev => [...prev, `${new Date().toISOString().split('T')[1].split('.')[0]}: ${msg}`]);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setLogs([]); // Clear previous logs
+        addLog("Submit triggered");
 
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
 
+        addLog(`Email provided: ${email}`);
+        addLog(`Password provided (length): ${password.length}`);
+
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) addLog("WARNING: SUPABASE_URL missing");
+
         // Safety timeout in case network hangs
         const timeoutId = setTimeout(() => {
             setLoading(false);
-            setError("Login request timed out. Please check your connection.");
-        }, 15000);
+            const msg = "Login request timed out (8s). Check network.";
+            setError(msg);
+            addLog(msg);
+        }, 8000);
 
         try {
-            console.log("Attempting login...");
+            addLog("Calling supabase.auth.signInWithPassword...");
             const { error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
             clearTimeout(timeoutId);
+            addLog("Supabase call returned.");
 
             if (error) {
                 console.error("Login error:", error);
                 setError(error.message);
+                addLog(`Error: ${error.message}`);
                 setLoading(false);
             } else {
                 console.log("Login successful, redirecting...");
+                addLog("Success! Redirecting...");
                 // Use assign for a definite navigation
                 window.location.assign("/?welcome=true");
             }
-        } catch (err) {
+        } catch (err: any) {
             clearTimeout(timeoutId);
             console.error("Unexpected error:", err);
             setError("An unexpected error occurred");
+            addLog(`Exception: ${err?.message || err}`);
             setLoading(false);
         }
     }
@@ -160,6 +176,14 @@ export default function LoginPage() {
                             Create account
                         </Link>
                     </p>
+
+                    {/* Debug Logs */}
+                    <div className="mt-8 border-t border-slate-200 pt-4">
+                        <h3 className="text-xs font-bold text-slate-400 mb-2">Debug Logs</h3>
+                        <div className="p-2 bg-slate-50 border border-slate-200 rounded text-[10px] font-mono text-slate-600 max-h-32 overflow-y-auto">
+                            {logs.length === 0 ? "Ready..." : logs.map((l, i) => <div key={i}>{l}</div>)}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
