@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Trash2, ArrowRight, Loader2 } from "lucide-react";
+import { Trash2, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useApp } from "@/providers/AppProvider";
 import { createClient } from "@/lib/supabase/client";
