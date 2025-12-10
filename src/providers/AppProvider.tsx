@@ -334,22 +334,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const signOut = React.useCallback(async () => {
         try {
             await supabase.auth.signOut();
-
-            // Clear all auth persistence keys
-            localStorage.removeItem('market-hub-auth');
-            localStorage.removeItem('market-hub-auth-backup');
-
-            const projectId = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1].split('.')[0];
-            if (projectId) localStorage.removeItem(`sb-${projectId}-auth-token`);
-
         } catch (error) {
             console.error("Error signing out:", error);
         } finally {
+            // Force Clear EVERYTHING
+            localStorage.clear(); // Nuclear option for "cant log out" complaints
+            sessionStorage.clear();
+
+            // Clear all cookies manually
+            document.cookie.split(";").forEach((c) => {
+                document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+
             setUser(null);
             setCartItems([]);
-            // Force role reset
             _setRole('buyer');
-            window.location.href = '/'; // Hard redirect to ensure clean state
+            window.location.href = '/';
         }
     }, [supabase]);
 
