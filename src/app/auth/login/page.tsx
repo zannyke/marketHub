@@ -93,9 +93,11 @@ export default function LoginPage() {
             try {
                 // FIXED: Use constant key to match client.ts config
                 const storageKey = 'market-hub-auth';
+                const backupKey = 'market-hub-auth-backup';
 
                 addLog(`Saving to storage key: ${storageKey}`);
                 localStorage.setItem(storageKey, JSON.stringify(data));
+                localStorage.setItem(backupKey, JSON.stringify(data));
 
                 addLog("Manual Save Successful.");
             } catch (storageErr: any) {

@@ -60,13 +60,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
                 let activeUser = session?.user ?? null;
 
-                // Manual Recovery for "Hanging SDK" workwaround
+                // Manual Recovery for "Hanging SDK" workaround
                 if (!activeUser) {
                     console.log("AppProvider: No active user from SDK, attempting manual recovery...");
                     try {
-                        const key = 'market-hub-auth';
-                        const stored = localStorage.getItem(key);
-                        console.log("AppProvider: Storage key:", key, "Found token?", !!stored);
+                        const backupKey = 'market-hub-auth-backup';
+                        const stored = localStorage.getItem(backupKey);
+                        console.log("AppProvider: Reading backup key:", backupKey, "Found?", !!stored);
 
                         if (stored) {
                             console.log("Attempting session recovery from storage...");
@@ -75,9 +75,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                                 access_token: tokenData.access_token,
                                 refresh_token: tokenData.refresh_token
                             });
+
                             if (recovered.session) {
                                 activeUser = recovered.session.user;
                                 console.log("Session recovered successfully!", activeUser.email);
+                                // Restore the SDK key if it was lost
+                                localStorage.setItem('market-hub-auth', stored);
                             } else {
                                 console.log("AppProvider: Recovery failed - setSession returned no session");
                             }
