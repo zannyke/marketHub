@@ -2,12 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { User, Session } from "@supabase/supabase-js";
+import { User, Session, SupabaseClient } from "@supabase/supabase-js";
 
 type Theme = "light" | "dark";
 type Role = "buyer" | "seller" | "delivery";
 
 interface AppContextType {
+    supabase: SupabaseClient;
     theme: Theme;
     toggleTheme: () => void;
     role: Role;
@@ -142,6 +143,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const value = React.useMemo(() => ({
+        supabase, // Expose shared client
         theme,
         toggleTheme,
         role,
@@ -151,7 +153,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         user,
         isLoading,
         signOut
-    }), [theme, role, cartCount, addToCart, user, isLoading, toggleTheme, signOut]);
+    }), [supabase, theme, role, cartCount, addToCart, user, isLoading, toggleTheme, signOut]);
 
     return (
         <AppContext.Provider value={value}>
