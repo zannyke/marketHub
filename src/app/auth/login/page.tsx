@@ -21,101 +21,46 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        setLogs([]); // Clear previous logs
-        addLog("Submit triggered");
+        setLogs([]);
+        addLog("Starting standardized login...");
 
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
 
-        addLog(`Email provided: ${email}`);
-        addLog(`Password provided (length): ${password.length}`);
-
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) addLog("WARNING: SUPABASE_URL missing");
-
-        const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-        addLog(`Config URL: ${sbUrl.substring(0, 40)}...`); // Show more to debug protocol
-
-        // Connectivity Check
         try {
-            addLog("Checking connectivity to Supabase...");
-            // Simple fetch to the project URL to see if it resolves
-            const res = await fetch(`${sbUrl}/rest/v1/`, {
-                method: "HEAD",
-                headers: { "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "" }
-            });
-            addLog(`Connectivity Status: ${res.status} ${res.statusText}`);
-        } catch (netErr: any) {
-            addLog(`Connectivity FAILED: ${netErr.message || netErr}`);
-            setError("Cannot reach server. Check Firewall/DNS.");
-            setLoading(false);
-            return;
-        }
-
-        // Safety timeout in case network hangs
-        const timeoutId = setTimeout(() => {
-            setLoading(false);
-            const msg = "Login request timed out (8s). Check network.";
-            setError(msg);
-            addLog(msg);
-        }, 8000);
-
-        try {
-            addLog("Attempting RAW NETWORK LOGIN (Bypassing SDK)...");
-
-            // 1. Direct REST Call to Supabase Auth API
-            const authUrl = `${sbUrl}/auth/v1/token?grant_type=password`;
-            const res = await fetch(authUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-                },
-                body: JSON.stringify({ email, password })
+            // Set a timeout for the Supabase call
+            const authPromise = supabase.auth.signInWithPassword({
+                email,
+                password,
             });
 
-            const data = await res.json();
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Login timed out. Please try again.")), 15000)
+            );
 
-            if (!res.ok) {
-                addLog(`Raw Auth Failed: ${res.status}`);
-                addLog(`Message: ${data.error_description || data.msg || "Unknown error"}`);
-                setError(data.error_description || "Login failed");
+            // @ts-ignore
+            const { data, error } = await Promise.race([authPromise, timeoutPromise]);
+
+            if (error) {
+                addLog(`Auth Error: ${error.message}`);
+                setError(error.message === "Invalid login credentials" ? "Invalid email or password" : error.message);
                 setLoading(false);
-                clearTimeout(timeoutId);
                 return;
             }
 
-            addLog("Raw Login Success! Got Token.");
-
-            // 3. MANUAL STORAGE SAVE (Bypassing SDK Hydration Lock)
-            // The SDK hangs on setSession, so we save the token directly to LocalStorage
-            // where the SDK expects it to be on the next load.
-            try {
-                // FIXED: Use constant key to match client.ts config
-                const storageKey = 'market-hub-auth';
-                const backupKey = 'market-hub-auth-backup';
-
-                addLog(`Saving to storage key: ${storageKey}`);
-                localStorage.setItem(storageKey, JSON.stringify(data));
-                localStorage.setItem(backupKey, JSON.stringify(data));
-
-                addLog("Manual Save Successful.");
-            } catch (storageErr: any) {
-                addLog(`Manual Save Failed: ${storageErr.message}`);
-                // Proceed anyway, maybe strict mode?
+            if (data?.session) {
+                addLog("Login Success! Session active.");
+                // Successful login
+                // We use window.location to force a full refresh and ensure AppProvider picks up the new session cleanly
+                window.location.href = "/?welcome=true";
+            } else {
+                setError("Login failed. Please check your credentials.");
+                setLoading(false);
             }
-
-            clearTimeout(timeoutId);
-            addLog("Redirecting...");
-
-            // Force reload to pick up the new localStorage token
-            window.location.assign("/?welcome=true");
-
         } catch (err: any) {
-            clearTimeout(timeoutId);
-            console.error("Unexpected error:", err);
-            setError("An unexpected error occurred");
-            addLog(`Exception: ${err?.message || err}`);
+            console.error("Login exception:", err);
+            setError(err.message || "An unexpected error occurred");
             setLoading(false);
         }
     }
