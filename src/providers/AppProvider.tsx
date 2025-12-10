@@ -26,7 +26,8 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-    const supabase = createClient();
+    // Determine the singleton Supabase client
+    const [supabase] = useState(() => createClient());
     const [theme, setTheme] = useState<Theme>("light");
     const [role, _setRole] = useState<Role>("buyer");
     const [cartItems, setCartItems] = useState<any[]>([]);
