@@ -332,27 +332,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }, [user]);
 
     const signOut = React.useCallback(async () => {
+        // 1. Notify server (Fire & Forget to prevent hanging)
+        supabase.auth.signOut().catch(err => console.error("Server signOut failed:", err));
+
+        // 2. Nuclear Local Cleanup (Immediate)
         try {
-            await supabase.auth.signOut();
-        } catch (error) {
-            console.error("Error signing out:", error);
-        } finally {
-            // Force Clear EVERYTHING
-            localStorage.clear(); // Nuclear option for "cant log out" complaints
+            localStorage.clear();
             sessionStorage.clear();
 
-            // Clear all cookies manually
-            document.cookie.split(";").forEach((c) => {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
-
-            setUser(null);
-            setCartItems([]);
-            _setRole('buyer');
-            window.location.href = '/';
+            // Clear cookies
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i];
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+            }
+        } catch (e) {
+            console.error("Cleanup error:", e);
         }
+
+        // 3. Reset State & Force Reload
+        setUser(null);
+        setCartItems([]);
+        _setRole('buyer');
+        window.location.href = '/';
     }, [supabase]);
 
     const value = React.useMemo(() => ({
