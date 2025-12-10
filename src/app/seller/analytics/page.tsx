@@ -107,7 +107,7 @@ export default function AnalyticsPage() {
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B' }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B' }} prefix="$" />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B' }} tickFormatter={(value) => `$${value}`} />
                                     <Tooltip
                                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                     />
