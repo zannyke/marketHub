@@ -57,82 +57,104 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    // Initialize Auth & Cart
+    // Initialize Auth & Cart - Robust Implementation
     useEffect(() => {
         let mounted = true;
 
-        const initializeApp = async () => {
+        const checkUserSession = async () => {
             try {
-                // Get Session with a timeout race
-                const sessionPromise = supabase.auth.getSession();
-                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject("Timeout"), 5000));
-                // @ts-ignore
-                const { data } = await Promise.race([sessionPromise, timeoutPromise]).catch(() => ({ data: { session: null } }));
-                const session = data?.session;
-                let activeUser = session?.user ?? null;
+                // 1. Check standard Supabase session
+                const { data: { session }, error } = await supabase.auth.getSession();
 
-                // Manual Recovery
-                if (!activeUser) {
+                if (session?.user) {
+                    console.log("AppProvider: Session found via getSession");
+                    if (mounted) setUser(session.user);
+                    return session.user;
+                }
+
+                // 2. Fallback: Check manual backup in LocalStorage
+                console.log("AppProvider: No standard session, checking backup...");
+                const backup = localStorage.getItem('market-hub-auth-backup');
+                if (backup) {
                     try {
-                        const backupKey = 'market-hub-auth-backup';
-                        const stored = localStorage.getItem(backupKey);
-                        if (stored) {
-                            const tokenData = JSON.parse(stored);
-                            const { data: recovered } = await supabase.auth.setSession({
+                        const tokenData = JSON.parse(backup);
+                        // Validate token structure
+                        if (tokenData.access_token && tokenData.refresh_token) {
+                            const { data, error: restoreError } = await supabase.auth.setSession({
                                 access_token: tokenData.access_token,
                                 refresh_token: tokenData.refresh_token
                             });
-                            if (recovered.session) {
-                                activeUser = recovered.session.user;
-                                localStorage.setItem('market-hub-auth', stored);
+
+                            if (!restoreError && data.session?.user) {
+                                console.log("AppProvider: Session restored from backup");
+                                if (mounted) setUser(data.session.user);
+                                return data.session.user;
                             }
                         }
-                    } catch (recErr) { console.error("Recovery failed:", recErr); }
-                }
-
-                if (mounted) {
-                    setUser(activeUser);
-                    if (activeUser) {
-                        const metaRole = activeUser.user_metadata?.role as Role;
-                        if (metaRole) _setRole(metaRole);
-                        await fetchCart(activeUser.id);
+                    } catch (e) {
+                        console.warn("AppProvider: Backup restore failed", e);
                     }
                 }
-            } catch (error) {
-                console.error("Error initializing app:", error);
-            } finally {
-                if (mounted) setIsLoading(false);
+
+                console.log("AppProvider: No session found.");
+                return null;
+            } catch (err) {
+                console.error("AppProvider: Session check error", err);
+                return null;
             }
         };
 
-        initializeApp();
+        const initializeFlow = async () => {
+            const activeUser = await checkUserSession(); // This handles all checks
 
-        const maxWait = setTimeout(() => { if (mounted) setIsLoading(false); }, 3000);
+            if (mounted) {
+                if (activeUser) {
+                    // Restore Role
+                    const metaRole = activeUser.user_metadata?.role as Role;
+                    if (metaRole) _setRole(metaRole);
 
+                    // Restore Cart
+                    await fetchCart(activeUser.id);
+
+                    // Track Login
+                    try {
+                        const location = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        supabase.rpc('track_user_login', { user_location: location });
+                    } catch (e) { }
+                }
+                setIsLoading(false);
+            }
+        };
+
+        // Listen for Auth Changes (Login, Logout, Auto-Refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log(`AppProvider: Auth Event ${event}`);
+
             if (!mounted) return;
+
+            // If we are already loading, let initializeFlow handle it to avoid race conditions
+            // Unless it's an explicit SIGNED_OUT or SIGNED_IN event that we must react to
+
             const currentUser = session?.user ?? null;
-            setUser(currentUser);
+            setUser(currentUser); // Always sync state
 
             if (currentUser) {
                 const metaRole = currentUser.user_metadata?.role as Role;
                 if (metaRole) _setRole(metaRole);
-                await fetchCart(currentUser.id);
-                if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-                    try {
-                        const location = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                        await supabase.rpc('track_user_login', { user_location: location });
-                    } catch (err) { console.error("Failed to track login:", err); }
-                }
-            } else {
+                fetchCart(currentUser.id);
+            } else if (!isLoading) {
+                // Only clear state if we are done loading and truly logged out
+                // Prevents clearing during the split-second "loading" phase
                 _setRole("buyer");
                 setCartItems([]);
             }
         });
 
+        // Kick off initialization
+        initializeFlow();
+
         return () => {
             mounted = false;
-            clearTimeout(maxWait);
             subscription.unsubscribe();
         };
     }, []);
