@@ -6,12 +6,13 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, User, Github, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, Github, ArrowRight, Briefcase, ShoppingBag, Truck } from "lucide-react";
 
 export default function SignupPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [role, setRole] = useState<'buyer' | 'seller' | 'delivery'>('buyer');
     const supabase = createClient();
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -23,7 +24,7 @@ export default function SignupPage() {
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
         const confirmPassword = formData.get("confirmPassword") as string;
-        const fullName = formData.get("fullName") as string; // Optional metadata
+        const fullName = formData.get("fullName") as string;
 
         if (password !== confirmPassword) {
             setError("Passwords do not match");
@@ -38,6 +39,7 @@ export default function SignupPage() {
                 options: {
                     data: {
                         full_name: fullName,
+                        role: role,
                     },
                 },
             });
@@ -46,10 +48,8 @@ export default function SignupPage() {
                 setError(error.message);
                 setLoading(false);
             } else if (data.session) {
-                // User is signed in immediately (Auto Confirm Enabled)
                 window.location.href = "/?welcome=true";
             } else {
-                // Email confirmation required
                 router.push("/auth/login?message=Account created successfully! Please check your email to confirm.");
                 router.refresh();
             }
@@ -66,6 +66,7 @@ export default function SignupPage() {
                 <div className="absolute inset-0 bg-[url('/hero-abstract.png')] opacity-20 bg-cover bg-center" />
                 <div className="absolute inset-0 bg-gradient-to-tr from-teal-900/90 to-slate-900/90" />
 
+                {/* ... (keep branding consistent if you want, or just let valid unchanged lines be) ... */}
                 <div className="relative z-10">
                     <div className="flex items-center gap-2 font-bold text-2xl mb-2">
                         <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center text-white">M</div>
@@ -74,9 +75,10 @@ export default function SignupPage() {
                 </div>
 
                 <div className="relative z-10 max-w-md">
-                    <h2 className="text-4xl font-bold mb-6 leading-tight">
-                        Join the community of innovators and creators.
+                    <h2 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                        Join the community of innovators.
                     </h2>
+                    {/* Updated text size here too for consistency if desired, otherwise standard */}
                     <ul className="space-y-4 text-teal-100 text-lg">
                         <li className="flex items-center gap-3">
                             <div className="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center">✓</div>
@@ -100,10 +102,41 @@ export default function SignupPage() {
 
             {/* Right: Form */}
             <div className="flex items-center justify-center bg-white p-8 lg:p-12">
-                <div className="w-full max-w-md space-y-8">
+                <div className="w-full max-w-md space-y-6">
                     <div className="text-center lg:text-left">
                         <h1 className="text-3xl font-bold text-slate-900">Create Account</h1>
                         <p className="text-slate-500 mt-2">Start your premium shopping journey today.</p>
+                    </div>
+
+                    {/* Role Selection */}
+                    <div>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block">I am a:</label>
+                        <div className="grid grid-cols-3 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setRole('buyer')}
+                                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all ${role === 'buyer' ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500 text-teal-700' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-200 hover:bg-slate-50'}`}
+                            >
+                                <ShoppingBag size={20} />
+                                <span className="text-xs font-bold">Buyer</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setRole('seller')}
+                                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all ${role === 'seller' ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500 text-teal-700' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-200 hover:bg-slate-50'}`}
+                            >
+                                <Briefcase size={20} />
+                                <span className="text-xs font-bold">Seller</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setRole('delivery')}
+                                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all ${role === 'delivery' ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500 text-teal-700' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-200 hover:bg-slate-50'}`}
+                            >
+                                <Truck size={20} />
+                                <span className="text-xs font-bold">Delivery</span>
+                            </button>
+                        </div>
                     </div>
 
                     {error && (
