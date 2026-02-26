@@ -4,67 +4,59 @@
 
 @layer base {
   :root {
-    /* Base Colors - Light Mode (Clean White Theme) */
-    --background: 0 0% 100%;
-    /* #FFFFFF */
-    --foreground: 220 10% 15%;
-    /* Dark Gray Text */
+    /* Market Hub - Premium Slate & Teal Palette */
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 10% 15%;
+    --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 10% 15%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Brand Colors */
-    --primary: 190 100% 35%;
-    /* Teal/Cyan #008B8B for specific primary actions like Sign Up/Footer */
-    --primary-foreground: 0 0% 100%;
+    --primary: 174 100% 29%;
+    /* Deep Teal #006D5B */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 20% 96%;
-    /* Light Gray for backgrounds/secondary buttons */
-    --secondary-foreground: 220 10% 15%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 20% 96%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 250 80% 60%;
-    /* Purple for gradients/accents */
-    --accent-foreground: 0 0% 100%;
+    --accent: 174 100% 29%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 220 13% 91%;
-    /* #E5E7EB */
-    --input: 220 13% 91%;
-    --ring: 190 100% 35%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 174 100% 29%;
 
-    --radius: 0.75rem;
-    /* Rounded corners */
+    --radius: 1.5rem;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    /* Keep dark mode reasonable, though the prompt implies a light theme */
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 190 100% 35%;
+    --primary: 174 100% 29%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 250 80% 60%;
+    --accent: 174 100% 29%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 190 100% 35%;
+    --ring: 174 100% 29%;
   }
 }
 
@@ -74,35 +66,60 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-teal-500/30;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
-/* Custom Gradients & Utilities */
+/* Premium Typography & Effects */
 .text-gradient {
-  background: linear-gradient(135deg, #008B8B 0%, #3B82F6 50%, #9333EA 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  @apply bg-clip-text text-transparent bg-gradient-to-br from-slate-900 via-teal-800 to-teal-600 font-black;
 }
 
-.btn-gradient {
-  background: linear-gradient(135deg, #008B8B 0%, #006064 100%);
-  color: white;
+.text-gradient-teal {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-emerald-500;
 }
 
-.btn-primary-gradient {
-  background: linear-gradient(90deg, #3B82F6 0%, #6366f1 100%);
-  @apply hover:opacity-90 transition-opacity;
+/* Glassmorphism Refined */
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  @apply shadow-[0_8px_32px_0_#1f268712];
 }
 
-.bg-teal-dark {
-  background-color: #00798C;
-  /* Custom Teal for Footer */
+.dark .glass {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.glass-panel {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+.glass-card {
+  @apply glass rounded-[2.5rem] p-8 transition-all duration-500 hover:shadow-[0_20px_80px_-15px_#006d5b26] hover:-translate-y-1;
+}
+
+/* Card Neo-Brutalism Subtle */
+.neo-card {
+  @apply bg-white border-2 border-slate-900 shadow-[8px_8px_0px_0px_#0f172aff] rounded-3xl transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-[4px_4px_0px_0px_#0f172aff];
+}
+
+/* Interactive Elements */
+.hover-lift {
+  @apply transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
