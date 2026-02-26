@@ -62,36 +62,47 @@ export const Header = () => {
             <div className="container mx-auto px-4 flex items-center justify-between gap-4">
                 {/* Logo & Role Badge */}
                 <div className="flex items-center gap-4">
-                    <Link href="/" className="flex items-center gap-2 font-black text-2xl text-slate-900 dark:text-white hover:opacity-80 transition-opacity tracking-tighter">
-                        <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-teal-600 flex items-center justify-center text-white font-black shadow-lg">
+                    <Link href="/" className="flex items-center gap-2 font-bold text-xl text-slate-900 dark:text-white hover:opacity-80 transition-opacity">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold shadow-sm">
                             M
                         </div>
-                        <span className="hidden sm:inline">Market<span className="text-teal-600">Hub</span></span>
+                        <span className="hidden sm:inline">MarketHub</span>
                     </Link>
 
-                    {/* Role Indicator - PROMINENT */}
-                    <div className="hidden md:flex items-center gap-2 text-[10px] font-black px-3 py-1 rounded-full bg-slate-900 text-white uppercase tracking-widest shadow-xl shadow-slate-900/10">
-                        <Shield size={10} className="text-teal-400" />
-                        {role} Access
+                    {/* Role Indicator (Demo) */}
+                    <div className="hidden md:flex items-center text-xs font-semibold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                        {role} Mode
                     </div>
                 </div>
 
                 {/* Navigation (Desktop) */}
-                <nav className="hidden md:flex items-center gap-8 mx-6">
+                <nav className="hidden md:flex items-center gap-6 mx-6">
+                    <Link href="/" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                        Home
+                    </Link>
                     {navLinks[role].map((link, i) => (
-                        <Link key={i} href={link.href} className="text-xs font-black text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors uppercase tracking-widest">
+                        <Link key={i} href={link.href} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
                             {link.label}
                         </Link>
                     ))}
                 </nav>
 
                 {/* Right Actions */}
-                <div className="flex items-center gap-4 ml-auto">
+                <div className="flex items-center gap-3 ml-auto">
+                    {/* Search (Collapsed on mobile) */}
+                    <div className="hidden lg:flex max-w-xs relative group mr-2">
+                        <Input
+                            icon={<Search className="w-4 h-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />}
+                            placeholder="Search..."
+                            className="bg-slate-100 dark:bg-slate-800 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-teal-200 dark:focus:border-teal-700 focus:ring-1 focus:ring-teal-100 dark:focus:ring-teal-900 text-sm h-9 rounded-full w-[200px] transition-all"
+                        />
+                    </div>
+
                     {role === 'buyer' && (
-                        <Link href="/cart" className="relative p-3 text-slate-900 dark:text-slate-300 hover:text-white hover:bg-teal-600 transition-all bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 group">
-                            <ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />
+                        <Link href="/cart" className="relative p-2 text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors bg-slate-50 dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700 rounded-full">
+                            <ShoppingCart size={20} />
                             {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-teal-600 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-white dark:border-slate-900 shadow-lg">
+                                <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white dark:border-slate-900">
                                     {cartCount}
                                 </span>
                             )}
@@ -100,84 +111,85 @@ export const Header = () => {
 
                     {/* Auth / Account Menu */}
                     {!user ? (
-                        <Link href="/auth/login">
-                            <Button size="lg" className="rounded-2xl px-8 font-black bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-900/20 uppercase text-xs tracking-widest h-12">
-                                Access Portal
-                            </Button>
+                        <Link href="/auth/signup">
+                            <Button size="sm" className="rounded-full px-5 font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-500/20">Sign In</Button>
                         </Link>
                     ) : (
                         <div className="relative" ref={menuRef}>
                             <button
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 p-1 rounded-2xl border border-slate-100 dark:border-slate-700 transition-all bg-white dark:bg-slate-900 shadow-sm pr-4"
+                                className="flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 pr-3 rounded-full border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all"
                             >
-                                <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-teal-400 font-black text-sm shadow-inner group overflow-hidden">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center text-white font-bold text-sm overflow-hidden shadow-md">
                                     {getInitials(user)}
-                                </div>
-                                <div className="text-left hidden lg:block">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Session Active</p>
-                                    <p className="text-xs font-black text-slate-900 dark:text-white leading-none whitespace-nowrap">Verified User</p>
                                 </div>
                                 <ChevronDown size={14} className="text-slate-400" />
                             </button>
 
                             {/* Dropdown Menu */}
                             {isMenuOpen && (
-                                <div className="absolute right-0 top-full mt-4 w-80 bg-white dark:bg-slate-950 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 dark:border-slate-800 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 origin-top-right z-50 p-2">
+                                <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-950 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right z-50 ring-1 ring-black/5">
                                     {/* User Info */}
-                                    <div className="p-6 bg-slate-900 rounded-[1.5rem] text-white mb-2 relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                                            <Shield size={60} />
-                                        </div>
-                                        <div className="relative z-10">
-                                            <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest mb-1">Authenticated via Identity Shield</p>
-                                            <h4 className="font-black text-xl truncate tracking-tight">
-                                                {user.user_metadata?.full_name || 'Anonymous Node'}
-                                            </h4>
-                                            <p className="text-xs text-slate-400 truncate font-medium">
-                                                {user.email}
-                                            </p>
-                                        </div>
+                                    <div className="p-4 border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                                        <h4 className="font-bold text-slate-900 dark:text-white truncate">
+                                            {user.user_metadata?.full_name || 'Valued Customer'}
+                                        </h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                            {user.email}
+                                        </p>
                                     </div>
 
                                     {/* Account Switcher */}
-                                    <div className="p-4 space-y-3">
-                                        <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Role-Isolation Switch</h5>
-                                        <div className="grid grid-cols-1 gap-1">
-                                            {[
-                                                { id: 'buyer', label: 'Buyer Environment', icon: <ShoppingBag size={16} />, color: 'teal' },
-                                                { id: 'seller', label: 'Seller Terminal', icon: <Briefcase size={16} />, color: 'blue' },
-                                                { id: 'delivery', label: 'Swift Logistics', icon: <Truck size={16} />, color: 'orange' }
-                                            ].map((r) => (
-                                                <button
-                                                    key={r.id}
-                                                    onClick={() => { setRole(r.id as any); router.push('/'); setIsMenuOpen(false); }}
-                                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${role === r.id ? 'bg-slate-900 text-white shadow-lg' : 'hover:bg-slate-50 text-slate-600 font-bold'}`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        {r.icon}
-                                                        <span className="text-xs font-black uppercase tracking-widest">{r.label}</span>
-                                                    </div>
-                                                    {role === r.id && <div className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />}
-                                                </button>
-                                            ))}
+                                    <div className="p-2">
+                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Switch Account</h5>
+                                        <div className="grid grid-cols-3 gap-1">
+                                            <button
+                                                onClick={() => { setRole('buyer'); router.push('/'); }}
+                                                className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs font-medium transition-colors ${role === 'buyer' ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 ring-1 ring-teal-200 dark:ring-teal-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+                                            >
+                                                <ShoppingBag size={16} /> Buyer
+                                            </button>
+                                            <button
+                                                onClick={() => { setRole('seller'); router.push('/'); }}
+                                                className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs font-medium transition-colors ${role === 'seller' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 ring-1 ring-blue-200 dark:ring-blue-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+                                            >
+                                                <Briefcase size={16} /> Seller
+                                            </button>
+                                            <button
+                                                onClick={() => { setRole('delivery'); router.push('/'); }}
+                                                className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs font-medium transition-colors ${role === 'delivery' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 ring-1 ring-orange-200 dark:ring-orange-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+                                            >
+                                                <Truck size={16} /> Delivery
+                                            </button>
                                         </div>
                                     </div>
 
-                                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-2 mx-4"></div>
+                                    <div className="h-px bg-slate-50 dark:bg-slate-800 my-1 mx-2"></div>
 
                                     {/* Settings Section */}
-                                    <div className="p-2 space-y-1">
+                                    <div className="p-1">
                                         <Link href="/settings" onClick={() => setIsMenuOpen(false)}>
-                                            <button className="w-full flex items-center gap-3 px-4 py-3 text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 rounded-xl transition-colors group">
-                                                <Settings size={16} className="text-slate-400 group-hover:rotate-45 transition-transform" /> Settings
+                                            <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
+                                                <Settings size={16} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" /> Settings
                                             </button>
                                         </Link>
+                                        <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
+                                            <HelpCircle size={16} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" /> Support
+                                        </button>
+                                        <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
+                                            <Shield size={16} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" /> Privacy
+                                        </button>
+                                    </div>
+
+                                    <div className="h-px bg-slate-50 dark:bg-slate-800 my-1 mx-2"></div>
+
+                                    {/* Logout */}
+                                    <div className="p-1 mb-1">
                                         <button
                                             onClick={handleSignOut}
-                                            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-black text-red-600 uppercase tracking-widest hover:bg-red-50 rounded-xl transition-colors"
+                                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                         >
-                                            <LogOut size={16} /> Terminate Session
+                                            <LogOut size={16} /> Log Out
                                         </button>
                                     </div>
                                 </div>

@@ -7,31 +7,17 @@ import { User, Session, SupabaseClient } from "@supabase/supabase-js";
 type Theme = "light" | "dark";
 type Role = "buyer" | "seller" | "delivery";
 
-interface ProductMetadata {
-    id: string | number;
-    name: string;
-    price: number;
-    image?: string;
-    [key: string]: any;
-}
-
-interface CartItem extends ProductMetadata {
-    productId: string;
-    quantity: number;
-    dbId?: string;
-}
-
 interface AppContextType {
     supabase: SupabaseClient;
     theme: Theme;
     toggleTheme: () => void;
     role: Role;
     setRole: (role: Role) => void;
-    cartItems: CartItem[];
+    cartItems: any[];
     removeFromCart: (productId: string) => Promise<void>;
     updateQuantity: (productId: string, quantity: number) => Promise<void>;
     cartCount: number;
-    addToCart: (item: ProductMetadata) => Promise<void>;
+    addToCart: (item: any) => Promise<void>;
     user: User | null;
     isLoading: boolean;
     signOut: () => Promise<void>;
@@ -44,67 +30,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const [supabase] = useState(() => createClient());
     const [theme, setTheme] = useState<Theme>("light");
     const [role, _setRole] = useState<Role>("buyer");
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [cartItems, setCartItems] = useState<any[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-
-    const fetchCart = React.useCallback(async (userId: string) => {
-        try {
-            const { data, error } = await supabase
-                .from('cart_items')
-                .select('*')
-                .eq('user_id', userId);
-
-            if (!error && data) {
-                // Deduplicate and aggregate
-                const uniqueItemsMap = new Map<string, CartItem>();
-                const duplicatesToDelete: string[] = [];
-                const updatesToPerform: { id: string, quantity: number }[] = [];
-
-                data.forEach(item => {
-                    const pid = item.product_id;
-                    if (uniqueItemsMap.has(pid)) {
-                        // Found duplicate
-                        const existing = uniqueItemsMap.get(pid)!;
-                        existing.quantity += item.quantity; // Sum quantity
-                        duplicatesToDelete.push(item.id); // Mark for deletion
-                        // Mark existing for update to save new sum
-                        const pendingUpdate = updatesToPerform.find(u => u.id === existing.dbId);
-                        if (pendingUpdate) {
-                            pendingUpdate.quantity = existing.quantity;
-                        } else {
-                            updatesToPerform.push({ id: existing.dbId!, quantity: existing.quantity });
-                        }
-                    } else {
-                        // New unique item
-                        uniqueItemsMap.set(pid, {
-                            ...item.product_metadata,
-                            quantity: item.quantity,
-                            dbId: item.id,
-                            productId: item.product_id
-                        });
-                    }
-                });
-
-                // Set State with clean unique items
-                setCartItems(Array.from(uniqueItemsMap.values()));
-
-                // Self-Healing: Clean up DB in background
-                if (duplicatesToDelete.length > 0 || updatesToPerform.length > 0) {
-                    // 1. Update summed quantities
-                    for (const update of updatesToPerform) {
-                        await supabase.from('cart_items').update({ quantity: update.quantity }).eq('id', update.id);
-                    }
-                    // 2. Delete duplicates
-                    if (duplicatesToDelete.length > 0) {
-                        await supabase.from('cart_items').delete().in('id', duplicatesToDelete);
-                    }
-                }
-            }
-        } catch (e) {
-            console.error("Failed to fetch cart", e);
-        }
-    }, [supabase]);
 
     const cartCount = React.useMemo(() => cartItems.reduce((acc, item) => acc + item.quantity, 0), [cartItems]);
 
@@ -264,7 +192,65 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             mounted = false;
             subscription.unsubscribe();
         };
-    }, [supabase, fetchCart, isLoading]);
+    }, []);
+
+    const fetchCart = async (userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('cart_items')
+                .select('*')
+                .eq('user_id', userId);
+
+            if (!error && data) {
+                // Deduplicate and aggregate
+                const uniqueItemsMap = new Map();
+                const duplicatesToDelete: string[] = [];
+                const updatesToPerform: { id: string, quantity: number }[] = [];
+
+                data.forEach(item => {
+                    const pid = item.product_id;
+                    if (uniqueItemsMap.has(pid)) {
+                        // Found duplicate
+                        const existing = uniqueItemsMap.get(pid);
+                        existing.quantity += item.quantity; // Sum quantity
+                        duplicatesToDelete.push(item.id); // Mark for deletion
+                        // Mark existing for update to save new sum
+                        const pendingUpdate = updatesToPerform.find(u => u.id === existing.dbId);
+                        if (pendingUpdate) {
+                            pendingUpdate.quantity = existing.quantity;
+                        } else {
+                            updatesToPerform.push({ id: existing.dbId, quantity: existing.quantity });
+                        }
+                    } else {
+                        // New unique item
+                        uniqueItemsMap.set(pid, {
+                            ...item.product_metadata,
+                            quantity: item.quantity,
+                            dbId: item.id,
+                            productId: item.product_id
+                        });
+                    }
+                });
+
+                // Set State with clean unique items
+                setCartItems(Array.from(uniqueItemsMap.values()));
+
+                // Self-Healing: Clean up DB in background
+                if (duplicatesToDelete.length > 0 || updatesToPerform.length > 0) {
+                    // 1. Update summed quantities
+                    for (const update of updatesToPerform) {
+                        await supabase.from('cart_items').update({ quantity: update.quantity }).eq('id', update.id);
+                    }
+                    // 2. Delete duplicates
+                    if (duplicatesToDelete.length > 0) {
+                        await supabase.from('cart_items').delete().in('id', duplicatesToDelete);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Failed to fetch cart", e);
+        }
+    };
 
     const toggleTheme = React.useCallback(() => {
         setTheme((prev) => {
@@ -276,7 +262,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
     }, []);
 
-    const addToCart = React.useCallback(async (item: ProductMetadata) => {
+    const addToCart = React.useCallback(async (item: any) => {
         const productId = item.id.toString();
 
         // Optimistic Update
@@ -314,7 +300,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 console.error("Error adding to DB cart:", error);
             }
         }
-    }, [user, supabase, fetchCart]);
+    }, [user]);
 
     const removeFromCart = React.useCallback(async (productId: string) => {
         setCartItems(prev => prev.filter(item => item.productId !== productId));
@@ -327,7 +313,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 console.error("Error removing from cart:", error);
             }
         }
-    }, [user, supabase]);
+    }, [user]);
 
     const updateQuantity = React.useCallback(async (productId: string, quantity: number) => {
         if (quantity < 1) return;
@@ -343,7 +329,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 console.error("Error updating cart quantity:", error);
             }
         }
-    }, [user, supabase]);
+    }, [user]);
 
     const signOut = React.useCallback(async () => {
         // 1. Notify server (Fire & Forget to prevent hanging)
@@ -377,7 +363,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         supabase, theme, toggleTheme, role, setRole,
         cartCount, cartItems, addToCart, removeFromCart, updateQuantity,
         user, isLoading, signOut
-    }), [supabase, theme, role, setRole, cartCount, cartItems, addToCart, removeFromCart, updateQuantity, user, isLoading, toggleTheme, signOut]);
+    }), [supabase, theme, role, cartCount, cartItems, addToCart, removeFromCart, updateQuantity, user, isLoading, toggleTheme, signOut]);
 
     return (
         <AppContext.Provider value={value}>

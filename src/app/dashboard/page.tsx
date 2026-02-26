@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CircleDollarSign, Package, ShoppingBag, TrendingUp, Truck, Users, Clock, CheckCircle, MessageSquare, Lock } from "lucide-react";
+import { CircleDollarSign, Package, ShoppingBag, TrendingUp, Truck, Users, Clock, CheckCircle } from "lucide-react";
 import { useApp } from "@/providers/AppProvider";
 import { useEffect, useState } from "react";
 
@@ -89,122 +89,96 @@ export default function SellerDashboard() {
                     {/* Orders Section (Left - Wider) */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Active Orders Card */}
-                        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-                            <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                                <div>
-                                    <h3 className="font-black text-xl text-slate-900 flex items-center gap-2 tracking-tight">
-                                        <MessageSquare size={20} className="text-teal-600" />
-                                        Negotiation Center
-                                    </h3>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Role-Isolated Trade Agreements</p>
-                                </div>
-                                <span className="text-[10px] font-black bg-teal-600 text-white px-3 py-1 rounded-full uppercase tracking-tighter shadow-lg shadow-teal-500/20">3 Live Sessions</span>
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                                    <Clock size={20} className="text-blue-500" />
+                                    Orders to Prepare
+                                </h3>
+                                <span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-full">5 Pending</span>
                             </div>
-
-                            <div className="divide-y divide-slate-100">
+                            <div className="divide-y divide-slate-50">
                                 {[
-                                    { id: "#NEG-882", user: "Buyer_Alpha", item: "DataWizard Node 04", price: "$49.99", status: "Negotiating", locked: false },
-                                    { id: "#NEG-881", user: "Buyer_Gamma", item: "Shield Protocol v2", price: "$120.00", status: "LOCKED", locked: true },
-                                    { id: "#NEG-880", user: "Buyer_Sigma", item: "Hardware Registry Key", price: "$85.00", status: "Negotiating", locked: false },
-                                ].map((neg, i) => (
-                                    <div key={i} className="p-6 hover:bg-slate-50 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 group">
+                                    { id: "#ORD-7782", item: "Premium Wireless Headphones", time: "10 mins ago", status: "New", price: "$199.99" },
+                                    { id: "#ORD-7781", item: "Organic Green Tea Set", time: "25 mins ago", status: "New", price: "$45.00" },
+                                    { id: "#ORD-7780", item: "Smart Home Hub", time: "1 hour ago", status: "Processing", price: "$129.50" },
+                                ].map((order, i) => (
+                                    <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center text-teal-500 shadow-inner group-hover:scale-105 transition-transform">
-                                                <Package size={22} />
+                                            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
+                                                <Package size={20} />
                                             </div>
                                             <div>
-                                                <div className="font-black text-slate-900 text-lg tracking-tight">{neg.item}</div>
-                                                <div className="text-xs font-bold text-slate-400 flex items-center gap-2 uppercase tracking-widest">
-                                                    <span>{neg.id}</span>
+                                                <div className="font-bold text-slate-900">{order.item}</div>
+                                                <div className="text-xs text-slate-500 flex items-center gap-2">
+                                                    <span>{order.id}</span>
                                                     <span>•</span>
-                                                    <span className="text-teal-600">With {neg.user}</span>
+                                                    <span>{order.time}</span>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div className="flex flex-wrap items-center gap-4 md:gap-8">
-                                            <div className="text-right">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Agreed Value</p>
-                                                <p className="text-xl font-black text-slate-900">{neg.price}</p>
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-right hidden sm:block">
+                                                <div className="font-bold text-slate-900">{order.price}</div>
+                                                <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full inline-block">{order.status}</div>
                                             </div>
-
-                                            <div className={`px-4 py-2 rounded-xl flex items-center gap-2 border ${neg.locked ? 'bg-teal-50 border-teal-200 text-teal-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
-                                                {neg.locked ? <Lock size={14} className="animate-pulse" /> : <Clock size={14} />}
-                                                <span className="text-xs font-black uppercase tracking-tighter">{neg.status}</span>
-                                            </div>
-
-                                            <div className="flex gap-2 w-full md:w-auto">
-                                                <Button size="sm" className="bg-slate-900 text-white font-black rounded-lg h-10 px-6 uppercase text-[10px] tracking-widest">Enter Chat</Button>
-                                                <Button
-                                                    size="sm"
-                                                    disabled={!neg.locked}
-                                                    className={`font-black rounded-lg h-10 px-6 uppercase text-[10px] tracking-widest shadow-lg ${neg.locked ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-500/20' : 'bg-slate-100 text-slate-300 border border-slate-200 shadow-none'}`}
-                                                >
-                                                    Find Rider
-                                                </Button>
-                                            </div>
+                                            <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white font-bold">
+                                                Ready
+                                            </Button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                            <div className="p-4 text-center border-t border-slate-50">
+                                <Button variant="ghost" className="text-teal-600 font-bold hover:text-teal-700 hover:bg-teal-50">
+                                    View All Orders
+                                </Button>
+                            </div>
                         </div>
 
-                        {/* Logistics Registry (Phase 4) */}
-                        <div className="bg-white rounded-[2rem] shadow-lg border-2 border-slate-900 overflow-hidden relative">
-                            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-                                <Truck size={120} />
-                            </div>
-
-                            <div className="p-8 border-b border-slate-100 bg-slate-50/50">
-                                <h3 className="font-black text-xl text-slate-900 flex items-center gap-2 tracking-tight">
-                                    <Truck size={22} className="text-orange-500" />
-                                    Swift Fleet Logistics
+                        {/* Pickup Status */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+                                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                                    <Truck size={20} className="text-orange-500" />
+                                    Awaiting Pickup
                                 </h3>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Agreement Required for Dispatch</p>
                             </div>
-
-                            <div className="p-8 space-y-8 relative z-10">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-4">
-                                        <div className="bg-slate-900 text-white p-6 rounded-[2rem] space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-[10px] font-black text-teal-400 uppercase tracking-widest">Pickup Origin</p>
-                                                <div className="w-2 h-2 rounded-full bg-teal-500" />
-                                            </div>
-                                            <div className="font-bold text-sm">Market Hub Vault - HQ1</div>
-                                            <div className="text-[10px] text-slate-400 uppercase">Wait for rider biometric matching</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="bg-slate-50 border-2 border-dashed border-slate-200 p-6 rounded-[2rem] space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Drop-off Destination</p>
-                                                <div className="w-2 h-2 rounded-full bg-slate-300" />
-                                            </div>
-                                            <div className="font-bold text-xs text-slate-400 italic italic">Awaiting Locked Agreement...</div>
-                                        </div>
-                                    </div>
+                            <div className="p-6 text-center text-slate-500 py-12">
+                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                    <CheckCircle size={32} />
                                 </div>
-
-                                <div className="bg-teal-50 border border-teal-100 p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white shadow-lg">
-                                            <CheckCircle size={20} />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-black text-teal-700 uppercase tracking-tighter">Agreement Lock Protocol</p>
-                                            <p className="text-[10px] text-teal-600/70 font-medium">Automatic dispatch enabled upon mutual price lock.</p>
-                                        </div>
-                                    </div>
-                                    <Button variant="outline" className="h-10 border-2 border-teal-600 text-teal-700 font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-teal-100">View Active Riders</Button>
-                                </div>
+                                <p>No orders currently waiting for pickup.</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Performance Section (Right) */}
+                    {/* Navigation Center and Performance Section (Right) */}
                     <div className="space-y-8">
+                        {/* Negotiation Center */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                            <h3 className="font-bold text-lg text-slate-900 mb-4 flex items-center justify-between">
+                                Negotiation Center
+                                <span className="bg-teal-100 text-teal-700 text-[10px] px-2 py-0.5 rounded-full">1 Locked</span>
+                            </h3>
+
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+                                <div className="flex justify-between items-center mb-2">
+                                    <div className="font-bold text-sm text-slate-900">MarketHub Item 101</div>
+                                    <div className="text-teal-600 bg-teal-50 px-2 shadow-sm border border-teal-100 py-0.5 text-[10px] font-black uppercase rounded">Agreement Locked</div>
+                                </div>
+                                <div className="text-xs text-slate-500 mb-3">
+                                    Final Price: <strong className="text-slate-800">$40.00</strong>
+                                </div>
+                                <Button size="sm" className="w-full btn-gradient shadow-sm text-white h-8 text-xs font-bold">
+                                    Find Logistics Rider
+                                </Button>
+                                <p className="text-[10px] text-slate-400 mt-2 text-center leading-tight">
+                                    Swift Escrow reserves funds. Ready for delivery routing.
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
                             <h3 className="font-bold text-lg text-slate-900 mb-6">Top Products</h3>
                             <div className="space-y-6">

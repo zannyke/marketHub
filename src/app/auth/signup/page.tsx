@@ -34,10 +34,6 @@ export default function SignupPage() {
         const password = formData.get("password") as string;
         const confirmPassword = formData.get("confirmPassword") as string;
         const fullName = formData.get("fullName") as string;
-        const plateNumber = formData.get("plateNumber") as string;
-        const classification = formData.get("classification") as string;
-        const energyProfile = formData.get("energyProfile") as string;
-        const idNumber = formData.get("idNumber") as string;
 
         if (password !== confirmPassword) {
             setError("Passwords do not match");
@@ -45,28 +41,29 @@ export default function SignupPage() {
             return;
         }
 
+        const plateNumber = formData.get("plateNumber") as string;
+        const vehicleClass = formData.get("vehicleClass") as string;
+        const energyProfile = formData.get("energyProfile") as string;
+        const nationalId = formData.get("nationalId") as string;
+
         try {
-            // Role-specific metadata
-            const metadata: any = {
-                full_name: fullName,
-                role: role,
-            };
-
-            if (role === 'delivery') {
-                metadata.plate_number = plateNumber;
-                metadata.classification = classification;
-                metadata.energy_profile = energyProfile;
-            } else if (role === 'seller') {
-                metadata.id_number = idNumber;
-                metadata.is_verified = false;
-            }
-
             // Race against a timeout to prevent hanging
             const signUpPromise = supabase.auth.signUp({
                 email,
                 password,
                 options: {
-                    data: metadata,
+                    data: {
+                        full_name: fullName,
+                        role: role,
+                        ...(role === 'delivery' && {
+                            plate_number: plateNumber,
+                            vehicle_class: vehicleClass,
+                            energy_profile: energyProfile
+                        }),
+                        ...(role === 'seller' && {
+                            national_id: nationalId
+                        })
+                    },
                 },
             });
 
@@ -216,68 +213,6 @@ export default function SignupPage() {
                             />
                         </div>
 
-                        {/* Role-Specific Fields */}
-                        {role === 'delivery' && (
-                            <div className="space-y-4 p-4 bg-teal-50 rounded-2xl border border-teal-100 animate-in fade-in zoom-in-95 duration-300">
-                                <h4 className="text-xs font-bold text-teal-700 uppercase tracking-widest">Hardware Registry</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Input
-                                        label="Plate Number"
-                                        name="plateNumber"
-                                        required
-                                        placeholder="KAA 001A"
-                                        className="h-11 bg-white border-teal-200 focus-visible:ring-teal-500"
-                                    />
-                                    <div className="space-y-1.5">
-                                        <label className="text-sm font-medium text-slate-700">Classification</label>
-                                        <select name="classification" className="w-full h-11 px-3 rounded-lg border border-teal-200 bg-white text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-                                            <option value="B1">Category B1 (Bike)</option>
-                                            <option value="B2">Category B2 (Car)</option>
-                                            <option value="C1">Category C1 (Truck)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-slate-700">Energy Profile</label>
-                                    <div className="flex gap-2">
-                                        {['Electric', 'Petrol', 'Diesel'].map((type) => (
-                                            <label key={type} className="flex-1">
-                                                <input type="radio" name="energyProfile" value={type} className="peer hidden" defaultChecked={type === 'Electric'} />
-                                                <div className="text-center py-2 text-xs font-bold rounded-lg border border-teal-200 cursor-pointer transition-all peer-checked:bg-teal-600 peer-checked:text-white peer-checked:border-teal-600 hover:bg-teal-50 text-teal-700">
-                                                    {type}
-                                                </div>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {role === 'seller' && (
-                            <div className="space-y-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 animate-in fade-in zoom-in-95 duration-300">
-                                <h4 className="text-xs font-bold text-blue-700 uppercase tracking-widest">KYC Verification</h4>
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-blue-200">
-                                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                                            <User size={20} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-xs font-bold text-slate-800">Biometric Selfie</p>
-                                            <p className="text-[10px] text-slate-500">Match with National ID</p>
-                                        </div>
-                                        <button type="button" className="text-xs font-bold text-blue-600 hover:underline">Upload</button>
-                                    </div>
-                                    <Input
-                                        label="National ID Number"
-                                        name="idNumber"
-                                        required
-                                        placeholder="12345678"
-                                        className="h-11 bg-white border-blue-200 focus-visible:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
-                        )}
-
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Input
@@ -303,7 +238,43 @@ export default function SignupPage() {
                             </div>
                         </div>
 
-                        <Button type="submit" size="lg" disabled={loading} className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold h-11 shadow-lg shadow-teal-500/20">
+                        {role === 'delivery' && (
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <h3 className="text-xs font-bold text-slate-500 uppercase">Hardware Registry Details</h3>
+                                <div className="space-y-2">
+                                    <Input label="Vehicle Plate Number" name="plateNumber" required placeholder="KCD 123A" className="h-11 bg-slate-50" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-slate-700">Classification</label>
+                                        <select name="vehicleClass" required className="flex h-11 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus-visible:ring-teal-500">
+                                            <option value="B1">Motorcycle (B1)</option>
+                                            <option value="B2">Light Van (B2)</option>
+                                            <option value="B3">Truck (B3)</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-slate-700">Energy Profile</label>
+                                        <select name="energyProfile" required className="flex h-11 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus-visible:ring-teal-500">
+                                            <option value="electric">100% Electric</option>
+                                            <option value="hybrid">Hybrid</option>
+                                            <option value="petroleum">Petroleum</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {role === 'seller' && (
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <h3 className="text-xs font-bold text-slate-500 uppercase">Verification Registry</h3>
+                                <div className="space-y-2">
+                                    <Input label="National ID Number" name="nationalId" required placeholder="e.g. 12345678" className="h-11 bg-slate-50" />
+                                </div>
+                            </div>
+                        )}
+
+                        <Button type="submit" size="lg" disabled={loading} className="w-full btn-gradient shadow text-white font-bold h-11">
                             {loading ? "Creating..." : "Create Account"}
                             {!loading && <ArrowRight size={18} className="ml-2" />}
                         </Button>
