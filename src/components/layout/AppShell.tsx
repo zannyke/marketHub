@@ -3,17 +3,20 @@
 import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { useApp } from "@/providers/AppProvider";
-import { Loader2, Shield, Bot, Zap, ShoppingBag, Store, Users, Truck, Package } from "lucide-react";
+import { Loader2, Shield, Bot, Zap, ShoppingBag, Store, Users, Truck, Package, ShoppingCart, Heart, Home } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 const ICONS = [
     { icon: Shield, color: "text-white", bg: "from-teal-600 to-teal-900" },
+    { icon: ShoppingCart, color: "text-white", bg: "from-blue-500 to-blue-700" },
     { icon: ShoppingBag, color: "text-white", bg: "from-rose-500 to-rose-700" },
-    { icon: Store, color: "text-white", bg: "from-amber-500 to-amber-700" },
-    { icon: Users, color: "text-white", bg: "from-blue-600 to-blue-800" },
-    { icon: Truck, color: "text-white", bg: "from-indigo-600 to-indigo-800" },
-    { icon: Package, color: "text-white", bg: "from-emerald-600 to-emerald-800" },
+    { icon: Store, color: "text-white", bg: "from-amber-600 to-amber-800" },
+    { icon: Users, color: "text-white", bg: "from-indigo-500 to-indigo-700" },
+    { icon: Truck, color: "text-white", bg: "from-emerald-600 to-emerald-800" },
+    { icon: Package, color: "text-white", bg: "from-teal-500 to-teal-700" },
     { icon: Zap, color: "text-white", bg: "from-purple-600 to-purple-800" },
+    { icon: Heart, color: "text-white", bg: "from-rose-400 to-rose-600" },
+    { icon: Home, color: "text-white", bg: "from-slate-700 to-slate-900" },
 ];
 
 const PremiumLoader = () => {
