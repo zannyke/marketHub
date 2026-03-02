@@ -17,7 +17,8 @@ import {
     CheckCheck,
     Truck,
     ShoppingBag,
-    DollarSign
+    DollarSign,
+    MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,50 +51,18 @@ export default function ChatCenter() {
     const [messages, setMessages] = useState<Message[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Mock data based on the user's current role
-    const chats: Chat[] = [
-        {
-            id: '1',
-            name: role === 'buyer' ? 'TechNova Store' : 'John Doe (Buyer)',
-            role: role === 'buyer' ? 'Seller' : 'Buyer',
-            lastMessage: 'The package has been processed.',
-            time: '12:45 PM',
-            unread: 2,
-            online: true,
-            avatar: 'T',
-            type: 'order'
-        },
-        {
-            id: '2',
-            name: role === 'delivery' ? 'Sarah (Buyer)' : 'Michael (Courier)',
-            role: role === 'delivery' ? 'Buyer' : 'Delivery',
-            lastMessage: 'I am 5 mins away from your location.',
-            time: 'Yesterday',
-            unread: 0,
-            online: false,
-            avatar: 'M',
-            type: 'delivery'
-        },
-        {
-            id: '3',
-            name: 'Escrow System',
-            role: 'Financial Bot',
-            lastMessage: 'Payment of $199.99 is now secured.',
-            time: 'Monday',
-            unread: 0,
-            online: true,
-            avatar: 'E',
-            type: 'payment'
-        }
-    ];
+    // Initialized as empty - No mock data as requested
+    const [chats, setChats] = useState<Chat[]>([]);
+
+    useEffect(() => {
+        // In a real app, this is where we'd fetch actual user chats from Supabase
+        // fetchUserChats();
+    }, [user]);
 
     useEffect(() => {
         if (selectedChat) {
-            setMessages([
-                { id: '1', senderId: 'other', text: `Hello ${user?.user_metadata?.full_name || 'User'}, how can I help you today?`, timestamp: '12:00 PM', status: 'read' },
-                { id: '2', senderId: 'me', text: 'Hi, I have a question about my recent transition.', timestamp: '12:05 PM', status: 'read' },
-                { id: '3', senderId: 'other', text: selectedChat.lastMessage, timestamp: selectedChat.time, status: 'delivered' }
-            ]);
+            // Mock messages removed, would fetch actual history here
+            setMessages([]);
         }
     }, [selectedChat, user]);
 
@@ -137,36 +106,44 @@ export default function ChatCenter() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    {chats.map((chat) => (
-                        <button
-                            key={chat.id}
-                            onClick={() => setSelectedChat(chat)}
-                            className={`w-full p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-50 dark:border-slate-800 ${selectedChat?.id === chat.id ? 'bg-teal-50/50 dark:bg-teal-900/20' : ''}`}
-                        >
-                            <div className="relative shrink-0">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center font-bold text-xl text-slate-500 dark:text-slate-300 shadow-sm">
-                                    {chat.avatar}
-                                </div>
-                                {chat.online && (
-                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
-                                )}
-                            </div>
-                            <div className="flex-1 text-left overflow-hidden">
-                                <div className="flex justify-between items-center mb-1">
-                                    <h3 className="font-bold text-slate-900 dark:text-white truncate">{chat.name}</h3>
-                                    <span className="text-[10px] text-slate-400 font-medium">{chat.time}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate pr-4">{chat.lastMessage}</p>
-                                    {chat.unread > 0 && (
-                                        <span className="bg-teal-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
-                                            {chat.unread}
-                                        </span>
+                    {chats.length > 0 ? (
+                        chats.map((chat) => (
+                            <button
+                                key={chat.id}
+                                onClick={() => setSelectedChat(chat)}
+                                className={`w-full p-4 flex items-center gap-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-50 dark:border-slate-800 ${selectedChat?.id === chat.id ? 'bg-teal-50/50 dark:bg-teal-900/20' : ''}`}
+                            >
+                                <div className="relative shrink-0">
+                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center font-bold text-xl text-slate-500 dark:text-slate-300 shadow-sm">
+                                        {chat.avatar}
+                                    </div>
+                                    {chat.online && (
+                                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
                                     )}
                                 </div>
-                            </div>
-                        </button>
-                    ))}
+                                <div className="flex-1 text-left overflow-hidden">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <h3 className="font-bold text-slate-900 dark:text-white truncate">{chat.name}</h3>
+                                        <span className="text-[10px] text-slate-400 font-medium">{chat.time}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate pr-4">{chat.lastMessage}</p>
+                                        {chat.unread > 0 && (
+                                            <span className="bg-teal-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
+                                                {chat.unread}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </button>
+                        ))
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full p-8 text-center opacity-40">
+                            <MessageSquare size={48} className="mb-4 text-slate-300" />
+                            <p className="text-sm font-bold text-slate-500">No Conversations Found</p>
+                            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">Connect with buyers or sellers to start chatting</p>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -216,25 +193,33 @@ export default function ChatCenter() {
 
                         {/* Messages Area */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-slate-50/30 dark:bg-slate-950">
-                            {messages.map((msg) => (
-                                <div
-                                    key={msg.id}
-                                    className={`flex ${msg.senderId === 'me' ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    <div className={`max-w-[75%] md:max-w-[60%] flex flex-col ${msg.senderId === 'me' ? 'items-end' : 'items-start'}`}>
-                                        <div className={`p-4 rounded-2xl text-sm shadow-sm transition-all hover:shadow-md ${msg.senderId === 'me'
+                            {messages.length > 0 ? (
+                                messages.map((msg) => (
+                                    <div
+                                        key={msg.id}
+                                        className={`flex ${msg.senderId === 'me' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                        <div className={`max-w-[75%] md:max-w-[60%] flex flex-col ${msg.senderId === 'me' ? 'items-end' : 'items-start'}`}>
+                                            <div className={`p-4 rounded-2xl text-sm shadow-sm transition-all hover:shadow-md ${msg.senderId === 'me'
                                                 ? 'bg-teal-600 text-white rounded-br-none'
                                                 : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-slate-700 rounded-bl-none'
-                                            }`}>
-                                            {msg.text}
-                                        </div>
-                                        <div className="flex items-center gap-1 mt-1 px-1">
-                                            <span className="text-[10px] text-slate-400 font-medium">{msg.timestamp}</span>
-                                            {msg.senderId === 'me' && <CheckCheck size={12} className={msg.status === 'read' ? 'text-teal-500' : 'text-slate-300'} />}
+                                                }`}>
+                                                {msg.text}
+                                            </div>
+                                            <div className="flex items-center gap-1 mt-1 px-1">
+                                                <span className="text-[10px] text-slate-400 font-medium">{msg.timestamp}</span>
+                                                {msg.senderId === 'me' && <CheckCheck size={12} className={msg.status === 'read' ? 'text-teal-500' : 'text-slate-300'} />}
+                                            </div>
                                         </div>
                                     </div>
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full opacity-20 text-center">
+                                    <Shield size={64} className="mb-4 text-slate-400" />
+                                    <p className="text-lg font-bold">Secure Session Established</p>
+                                    <p className="text-sm">Your messages are encrypted. Send a message to start.</p>
                                 </div>
-                            ))}
+                            )}
                             <div ref={scrollRef} />
                         </div>
 
@@ -269,22 +254,28 @@ export default function ChatCenter() {
                             <Shield size={48} className="text-teal-600" />
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Secure Communications Center</h2>
-                        <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-8">
+                        <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-12">
                             Select a transaction or delivery partner to start a secure conversation.
                             All communications are encrypted and monitored for your safety.
                         </p>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="flex flex-col items-center gap-2 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <DollarSign className="text-teal-500" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Payments</span>
+                        <div className="grid grid-cols-3 gap-6 max-w-md mx-auto">
+                            <div className="flex flex-col items-center gap-3 p-6 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-transform hover:-translate-y-1">
+                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm">
+                                    <DollarSign className="text-teal-500" size={24} />
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Payments</span>
                             </div>
-                            <div className="flex flex-col items-center gap-2 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <Truck className="text-blue-500" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tracking</span>
+                            <div className="flex flex-col items-center gap-3 p-6 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-transform hover:-translate-y-1">
+                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm">
+                                    <Truck className="text-indigo-500" size={24} />
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Tracking</span>
                             </div>
-                            <div className="flex flex-col items-center gap-2 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <ShoppingBag className="text-rose-500" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Agreements</span>
+                            <div className="flex flex-col items-center gap-3 p-6 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm transition-transform hover:-translate-y-1">
+                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm">
+                                    <ShoppingBag className="text-rose-500" size={24} />
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Escrow</span>
                             </div>
                         </div>
                     </div>

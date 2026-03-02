@@ -17,6 +17,7 @@ export const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchCategory, setSearchCategory] = useState<'products' | 'sellers'>('products');
     const menuRef = useRef<HTMLDivElement>(null);
     const mobileMenuRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
@@ -101,11 +102,19 @@ export const Header = () => {
                 {/* Right Actions */}
                 <div className="flex items-center gap-2 md:gap-3 ml-auto">
                     {/* Search (Desktop) */}
-                    <div className="hidden lg:flex max-w-xs relative group mr-2">
+                    <div className="hidden lg:flex items-center relative group mr-2 bg-slate-100 dark:bg-slate-800 rounded-full border border-transparent focus-within:border-teal-200 dark:focus-within:border-teal-700 transition-all">
+                        <select
+                            value={searchCategory}
+                            onChange={(e) => setSearchCategory(e.target.value as any)}
+                            className="bg-transparent text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-4 pr-1 h-9 outline-none cursor-pointer border-r border-slate-200 dark:border-slate-700"
+                        >
+                            <option value="products">Products</option>
+                            <option value="sellers">Sellers</option>
+                        </select>
                         <Input
-                            icon={<Search className="w-4 h-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />}
-                            placeholder="Search..."
-                            className="bg-slate-100 dark:bg-slate-800 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-teal-200 dark:focus:border-teal-700 focus:ring-1 focus:ring-teal-100 dark:focus:ring-teal-900 text-sm h-9 rounded-full w-[160px] xl:w-[200px] transition-all"
+                            icon={<Search className="w-3.5 h-3.5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />}
+                            placeholder={`Search ${searchCategory}...`}
+                            className="bg-transparent border-none focus:ring-0 text-sm h-9 w-[120px] xl:w-[160px] transition-all py-0 shadow-none"
                         />
                     </div>
 
@@ -229,14 +238,24 @@ export const Header = () => {
 
             {/* Mobile Search Overlay */}
             {isSearchOpen && (
-                <div className="absolute top-[73px] left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 p-4 animate-in slide-in-from-top lg:hidden z-40 shadow-lg">
-                    <div className="relative group">
-                        <Input
-                            autoFocus
-                            icon={<Search className="w-4 h-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />}
-                            placeholder="Search everything..."
-                            className="bg-slate-100 dark:bg-slate-800 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-teal-200 dark:focus:border-teal-700 focus:ring-1 focus:ring-teal-100 dark:focus:ring-teal-900 h-11 rounded-xl w-full transition-all"
-                        />
+                <div className="absolute top-[73px] left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 p-3 animate-in slide-in-from-top lg:hidden z-40 shadow-lg">
+                    <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 px-3">
+                        <select
+                            value={searchCategory}
+                            onChange={(e) => setSearchCategory(e.target.value as any)}
+                            className="bg-transparent text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 h-9 outline-none cursor-pointer border-r border-slate-200 dark:border-slate-700 pr-2"
+                        >
+                            <option value="products">Products</option>
+                            <option value="sellers">Sellers</option>
+                        </select>
+                        <div className="relative flex-1">
+                            <Input
+                                autoFocus
+                                icon={<Search className="w-4 h-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" />}
+                                placeholder={`Search ${searchCategory}...`}
+                                className="bg-transparent border-none focus:ring-0 h-10 w-full transition-all shadow-none"
+                            />
+                        </div>
                     </div>
                 </div>
             )}
