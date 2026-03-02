@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Package, MapPin, Navigation, Clock, CheckCircle, ChevronRight, DollarSign, Calendar } from "lucide-react";
+import { LiveMap } from "@/components/delivery/LiveMap";
 
 export default function DeliveryDashboard() {
     return (
@@ -68,12 +69,14 @@ export default function DeliveryDashboard() {
 
                             <div className="relative z-10">
                                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                    <Navigation size={18} /> Live Map
+                                    <Navigation size={18} /> Live Map Terminal
                                 </h3>
-                                <div className="aspect-square bg-white/10 rounded-xl flex items-center justify-center border-2 border-dashed border-white/20 mb-4">
-                                    <MapPin size={32} className="text-teal-400 opacity-20" />
+                                <div className="aspect-square rounded-xl overflow-hidden border border-white/10 mb-4 bg-slate-900 border-dashed">
+                                    <LiveMap className="w-full h-full" zoom={13} />
                                 </div>
-                                <p className="text-sm text-slate-300 text-center italic">Waiting for connection to GPS...</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
+                                    MapTiler Vector Sync Active
+                                </p>
                             </div>
                         </div>
 

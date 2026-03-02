@@ -68,7 +68,7 @@ export const Header = () => {
     };
 
     return (
-        <header className="sticky top-0 z-50 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-border dark:border-slate-800 h-[73px] flex items-center transition-colors duration-300">
+        <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 h-[73px] flex items-center transition-colors duration-300 shadow-sm">
             <div className="container mx-auto px-4 flex items-center justify-between gap-4">
                 {/* Logo & Account Type */}
                 <div className="flex items-center gap-2 md:gap-4">
@@ -89,11 +89,11 @@ export const Header = () => {
 
                 {/* Navigation (Desktop) */}
                 <nav className="hidden md:flex items-center gap-6 mx-6">
-                    <Link href="/" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                    <Link href="/" className="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
                         Home
                     </Link>
                     {navLinks[role].map((link, i) => (
-                        <Link key={i} href={link.href} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+                        <Link key={i} href={link.href} className="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
                             {link.label}
                         </Link>
                     ))}
@@ -267,7 +267,7 @@ export const Header = () => {
             >
                 <div
                     ref={mobileMenuRef}
-                    className={`absolute left-0 top-0 bottom-0 w-[300px] bg-gradient-to-b from-white to-teal-50 dark:from-slate-900 dark:to-slate-950 backdrop-blur-3xl shadow-2xl transition-transform duration-500 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} border-r border-teal-100/50 dark:border-teal-900/30`}
+                    className={`absolute left-0 top-0 bottom-0 w-[300px] bg-white dark:bg-slate-950 shadow-2xl transition-transform duration-500 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} border-r border-slate-100 dark:border-slate-800`}
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="p-6 flex flex-col h-full">
