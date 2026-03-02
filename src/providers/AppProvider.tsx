@@ -183,7 +183,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         try {
             const { data, error } = await supabase
                 .from('cart_items')
-                .select('*')
+                .select('*, products(*)')
                 .eq('user_id', userId);
 
             if (!error && data) {
@@ -207,9 +207,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                             updatesToPerform.push({ id: existing.dbId, quantity: existing.quantity });
                         }
                     } else {
-                        // New unique item
+                        // New unique item - prefer LIVE products data over old metadata
+                        const liveProductInfo = item.products || item.product_metadata || {};
                         uniqueItemsMap.set(pid, {
-                            ...item.product_metadata,
+                            ...liveProductInfo,
                             quantity: item.quantity,
                             dbId: item.id,
                             productId: item.product_id
