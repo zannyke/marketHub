@@ -42,15 +42,6 @@ const PremiumLoader = () => {
                     <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-3 flex items-baseline gap-2 group-hover:scale-105 transition-transform">
                         Market<span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-400">Hub</span>
                     </h2>
-                    <div className="flex flex-col items-center">
-                        <p className="text-[12px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em] flex items-center justify-center gap-3">
-                            <Loader2 size={16} className="animate-spin text-teal-600" />
-                            Synchronizing{dots}
-                        </p>
-                        <div className="w-48 h-1 bg-slate-100 dark:bg-slate-900 rounded-full mt-6 overflow-hidden relative shadow-inner">
-                            <div className="h-full bg-teal-600 rounded-full animate-shimmer"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
