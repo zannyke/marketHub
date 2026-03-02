@@ -107,15 +107,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 const metaRole = user.user_metadata?.role as Role;
                 if (metaRole) _setRole(metaRole);
 
-                // Restore Cart
-                await fetchCart(user.id);
+                // Start fetching cart in background - DON'T BLOCK INITIALIZATION
+                fetchCart(user.id);
             };
 
-            const activeUser = await checkUserSession();
-            if (activeUser) {
-                await handleUserFound(activeUser as User);
+            // Set a fallback timeout (5 seconds) to prevent infinite loading screen
+            const fallbackTimeout = setTimeout(() => {
+                if (mounted) {
+                    console.warn("AppProvider: Initialization timed out, forcing load to end.");
+                    setIsLoading(false);
+                }
+            }, 5000);
+
+            try {
+                const activeUser = await checkUserSession();
+                if (activeUser && mounted) {
+                    await handleUserFound(activeUser as User);
+                }
+            } catch (err) {
+                console.error("AppProvider: Failed to initialize", err);
+            } finally {
+                clearTimeout(fallbackTimeout);
+                if (mounted) {
+                    console.log("AppProvider: Initialization complete.");
+                    setIsLoading(false);
+                }
             }
-            setIsLoading(false);
         };
 
         // Listen for Auth Changes (Login, Logout, Auto-Refresh)
