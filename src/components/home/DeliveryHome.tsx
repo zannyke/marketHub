@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useApp } from "@/providers/AppProvider";
 import Link from "next/link";
 import { MapPin, Navigation, Clock, CheckCircle } from "lucide-react";
-import { Footer } from "@/components/layout/Footer";
 
 export function DeliveryHome() {
     const { user } = useApp();
@@ -113,7 +112,6 @@ export function DeliveryHome() {
                     </div>
                 </div>
             </div>
-            <Footer />
         </main>
     );
 }

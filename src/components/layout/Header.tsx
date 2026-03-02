@@ -69,7 +69,7 @@ export const Header = () => {
     return (
         <header className="sticky top-0 z-50 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-border dark:border-slate-800 h-[73px] flex items-center transition-colors duration-300">
             <div className="container mx-auto px-4 flex items-center justify-between gap-4">
-                {/* Logo & Role Badge */}
+                {/* Logo & Account Type */}
                 <div className="flex items-center gap-2 md:gap-4">
                     <button
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -84,11 +84,6 @@ export const Header = () => {
                         </div>
                         <span className="hidden xs:inline">MarketHub</span>
                     </Link>
-
-                    {/* Role Indicator (Demo) */}
-                    <div className="hidden lg:flex items-center text-[10px] md:text-xs font-semibold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                        {role} Mode
-                    </div>
                 </div>
 
                 {/* Navigation (Desktop) */}
@@ -142,79 +137,88 @@ export const Header = () => {
                         <div className="relative" ref={menuRef}>
                             <button
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="flex items-center gap-1 md:gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 p-1 md:p-1.5 md:pr-3 rounded-full border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all"
+                                className="flex items-center gap-1 md:gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 p-1 md:p-1.5 md:pr-3 rounded-full border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all font-bold"
                             >
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center text-white font-bold text-xs md:text-sm overflow-hidden shadow-md">
+                                <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-white font-bold text-xs shadow-md">
                                     {getInitials(user)}
                                 </div>
-                                <ChevronDown size={14} className="text-slate-400 hidden xs:block" />
+                                <span className="text-xs text-slate-700 dark:text-slate-300 capitalize hidden sm:block">{role}</span>
+                                <ChevronDown size={14} className="text-slate-400" />
                             </button>
 
-                            {/* Dropdown Menu */}
+                            {/* Enhanced Dropdown Menu with Footer Details */}
                             {isMenuOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-950 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right z-50 ring-1 ring-black/5">
+                                <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right z-50 overflow-y-auto max-h-[85vh]">
                                     {/* User Info */}
-                                    <div className="p-4 border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                                        <h4 className="font-bold text-slate-900 dark:text-white truncate">
-                                            {user.user_metadata?.full_name || 'Valued Customer'}
-                                        </h4>
+                                    <div className="p-5 border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                                        <div className="flex items-center gap-3 mb-1">
+                                            <h4 className="font-bold text-slate-900 dark:text-white truncate">
+                                                {user.user_metadata?.full_name || 'Valued User'}
+                                            </h4>
+                                            <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400 rounded">
+                                                {role}
+                                            </span>
+                                        </div>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                                             {user.email}
                                         </p>
                                     </div>
 
-                                    {/* Account Switcher */}
+                                    {/* App Navigation */}
                                     <div className="p-2">
-                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">Switch Account</h5>
-                                        <div className="grid grid-cols-3 gap-1">
-                                            <button
-                                                onClick={() => { setRole('buyer'); router.push('/'); setIsMenuOpen(false); }}
-                                                className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs font-medium transition-colors ${role === 'buyer' ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 ring-1 ring-teal-200 dark:ring-teal-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
-                                            >
-                                                <ShoppingBag size={16} /> Buyer
-                                            </button>
-                                            <button
-                                                onClick={() => { setRole('seller'); router.push('/'); setIsMenuOpen(false); }}
-                                                className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs font-medium transition-colors ${role === 'seller' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 ring-1 ring-blue-200 dark:ring-blue-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
-                                            >
-                                                <Briefcase size={16} /> Seller
-                                            </button>
-                                            <button
-                                                onClick={() => { setRole('delivery'); router.push('/'); setIsMenuOpen(false); }}
-                                                className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs font-medium transition-colors ${role === 'delivery' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 ring-1 ring-orange-200 dark:ring-orange-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
-                                            >
-                                                <Truck size={16} /> Delivery
-                                            </button>
+                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 my-2">Dashboard</h5>
+                                        <div className="space-y-1">
+                                            <Link href={role === 'seller' ? '/dashboard' : role === 'delivery' ? '/delivery/dashboard' : '/customer/orders'} onClick={() => setIsMenuOpen(false)}>
+                                                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl group transition-all">
+                                                    <LayoutDashboard size={18} className="text-teal-500" />
+                                                    {role === 'seller' ? 'Seller Management' : role === 'delivery' ? 'Fleet Hub' : 'Order History'}
+                                                </button>
+                                            </Link>
+                                            <Link href="/settings" onClick={() => setIsMenuOpen(false)}>
+                                                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl group transition-all">
+                                                    <Settings size={18} className="text-slate-400 group-hover:text-teal-500" /> Account Settings
+                                                </button>
+                                            </Link>
+                                            <Link href="/chat" onClick={() => setIsMenuOpen(false)}>
+                                                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl group transition-all bg-teal-50/30 dark:bg-teal-900/10 border border-teal-100/50 dark:border-teal-800/30">
+                                                    <Shield size={18} className="text-teal-600" /> Secure Chat Center
+                                                </button>
+                                            </Link>
                                         </div>
                                     </div>
 
-                                    <div className="h-px bg-slate-50 dark:bg-slate-800 my-1 mx-2"></div>
+                                    <div className="h-px bg-slate-50 dark:bg-slate-800 my-1 mx-3"></div>
 
-                                    {/* Settings Section */}
-                                    <div className="p-1">
-                                        <Link href="/settings" onClick={() => setIsMenuOpen(false)}>
-                                            <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group text-left">
-                                                <Settings size={16} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" /> Settings
-                                            </button>
-                                        </Link>
-                                        <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group text-left">
-                                            <HelpCircle size={16} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" /> Support
-                                        </button>
-                                        <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group text-left">
-                                            <Shield size={16} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300" /> Privacy
-                                        </button>
+                                    {/* Help & Support (from Footer) */}
+                                    <div className="p-2">
+                                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 my-2">Support & Legal</h5>
+                                        <div className="space-y-1">
+                                            <Link href="/help" onClick={() => setIsMenuOpen(false)}>
+                                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-teal-600 transition-colors">Help Center</button>
+                                            </Link>
+                                            <Link href="/contact" onClick={() => setIsMenuOpen(false)}>
+                                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-teal-600 transition-colors">Contact Us</button>
+                                            </Link>
+                                            <Link href="/returns" onClick={() => setIsMenuOpen(false)}>
+                                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-teal-600 transition-colors">Returns & Shipping</button>
+                                            </Link>
+                                            <Link href="/terms" onClick={() => setIsMenuOpen(false)}>
+                                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-teal-600 transition-colors">Terms of Service</button>
+                                            </Link>
+                                        </div>
                                     </div>
 
-                                    <div className="h-px bg-slate-50 dark:bg-slate-800 my-1 mx-2"></div>
+                                    <div className="h-px bg-slate-50 dark:bg-slate-800 my-1 mx-3"></div>
 
                                     {/* Logout */}
-                                    <div className="p-1 mb-1">
+                                    <div className="p-3">
                                         <button
                                             onClick={handleSignOut}
-                                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left"
+                                            className="w-full flex items-center justify-center gap-3 px-3 py-2.5 text-sm font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 rounded-xl hover:bg-slate-800 transition-all shadow-md group"
                                         >
-                                            <LogOut size={16} /> Log Out
+                                            <LogOut size={16} className="group-hover:translate-x-1 transition-transform" /> Log Out Application
                                         </button>
+                                        <p className="text-[10px] text-center text-slate-400 mt-3 font-medium">MarketHub v2.4.0 Powered by Swifft Escrow</p>
                                     </div>
                                 </div>
                             )}
@@ -266,6 +270,13 @@ export const Header = () => {
                                 className="flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
                             >
                                 <LayoutDashboard size={18} className="text-teal-500" /> Home
+                            </Link>
+                            <Link
+                                href="/chat"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 font-semibold bg-teal-50/50 dark:bg-teal-900/20 border border-teal-100/50 dark:border-teal-800/20"
+                            >
+                                <Shield size={18} className="text-teal-600" /> Secure Chat
                             </Link>
                             {navLinks[role].map((link, i) => (
                                 <Link

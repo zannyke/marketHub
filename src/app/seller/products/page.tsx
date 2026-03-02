@@ -51,42 +51,18 @@ export default function ProductsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {[
-                                { name: "Premium Wireless Headphones", status: "Active", price: "$199.99", stock: 45, img: "/products/headphones.png" },
-                                { name: "Minimalist Smart Watch", status: "Active", price: "$249.99", stock: 12, img: "/products/watch.png" },
-                                { name: "Luxury Leather Bag", status: "Low Stock", price: "$299.99", stock: 3, img: "/products/bag.png", alert: true },
-                            ].map((item, i) => (
-                                <tr key={i} className="hover:bg-slate-50 transition-colors">
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-12 w-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
-                                                <img src={item.img} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-900">{item.name}</p>
-                                                <p className="text-xs text-slate-500">ID: #SKU-892{i}</p>
-                                            </div>
+                            {/* Empty state for fresh accounts */}
+                            <tr>
+                                <td colSpan={5} className="p-12 text-center text-slate-500">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-2">
+                                            <Search size={24} />
                                         </div>
-                                    </td>
-                                    <td className="p-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.alert ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                                            {item.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 font-medium text-slate-700">{item.price}</td>
-                                    <td className="p-4">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-slate-700">{item.stock}</span>
-                                            {item.alert && <AlertCircle size={14} className="text-amber-500" />}
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-900">
-                                            <MoreHorizontal size={18} />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
+                                        <p className="font-bold text-slate-700">No products found</p>
+                                        <p className="text-sm">You haven't listed any items for sale yet.</p>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

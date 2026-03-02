@@ -36,17 +36,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const cartCount = React.useMemo(() => cartItems.reduce((acc, item) => acc + item.quantity, 0), [cartItems]);
 
-    // Persist role changes to Supabase
+    // Role is now fixed based on metadata at signup
     const setRole = React.useCallback(async (newRole: Role) => {
-        _setRole(newRole);
-        if (user) {
-            try {
-                await supabase.auth.updateUser({ data: { role: newRole } });
-            } catch (err) {
-                console.error("Failed to persist role:", err);
-            }
-        }
-    }, [user, supabase]);
+        // No-op for manual switching after signup
+        console.warn("Role is fixed by account type. Switch accounts by logging out.");
+    }, []);
 
     // Initialize theme
     useEffect(() => {

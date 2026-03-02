@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useApp } from "@/providers/AppProvider";
 import Link from "next/link";
 import { Package, TrendingUp, ShoppingCart, Plus, ArrowRight, BarChart3, Box, AlertCircle } from "lucide-react";
-import { Footer } from "@/components/layout/Footer";
 
 export function SellerHome() {
     const { user } = useApp();
@@ -67,8 +66,8 @@ export function SellerHome() {
                             </div>
                             <h3 className="text-2xl font-bold text-slate-900 mb-2">Inventory</h3>
                             <div className="flex items-center gap-2 mb-4">
-                                <span className="px-2 py-1 bg-teal-100 text-teal-700 rounded-md text-sm font-bold">24 Active</span>
-                                <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-sm font-bold">4 Low Stock</span>
+                                <span className="px-2 py-1 bg-teal-100 text-teal-700 rounded-md text-sm font-bold">0 Active</span>
+                                <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-md text-sm font-bold">0 Low Stock</span>
                             </div>
                             <p className="text-slate-500 mb-4">Manage your products, update stock, and add new listings.</p>
                             <div className="flex items-center text-teal-600 font-bold group-hover:translate-x-2 transition-transform">
@@ -84,8 +83,8 @@ export function SellerHome() {
                             </div>
                             <h3 className="text-2xl font-bold text-slate-900 mb-2">Orders</h3>
                             <div className="flex items-center gap-2 mb-4">
-                                <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-md text-sm font-bold flex items-center gap-1">
-                                    <AlertCircle size={12} /> 8 Pending
+                                <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded-md text-sm font-bold flex items-center gap-1">
+                                    0 Pending
                                 </span>
                             </div>
                             <p className="text-slate-500 mb-4">Process new orders, print labels, and track delivery status.</p>
@@ -103,39 +102,16 @@ export function SellerHome() {
                             <h2 className="text-2xl font-bold text-slate-900">Recent Orders</h2>
                             <p className="text-slate-500">Latest activity from your customers</p>
                         </div>
-                        <Link href="/seller/orders">
-                            <Button variant="outline">View All</Button>
-                        </Link>
                     </div>
 
-                    <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-colors">
-                                <div className="flex items-center gap-4 mb-4 md:mb-0">
-                                    <div className="h-12 w-12 bg-white rounded-lg border border-slate-200 flex items-center justify-center font-bold text-slate-400">
-                                        #{i}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-slate-900">Order #100{i}</p>
-                                        <p className="text-sm text-slate-500">Premium Wireless Headphones • 1 Item</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-6">
-                                    <div className="text-right">
-                                        <p className="text-sm font-bold text-slate-700">Customer</p>
-                                        <p className="text-sm text-slate-500">Alice Smith</p>
-                                    </div>
-                                    <div className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">
-                                        Pending Ship...
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="py-12 text-center text-slate-400 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">
+                        <ShoppingCart size={40} className="mx-auto mb-3 opacity-20" />
+                        <p className="font-medium">No recent orders found.</p>
+                        <p className="text-xs">Your sales activity will appear here in real-time.</p>
                     </div>
                 </div>
             </div>
 
-            <Footer />
         </main>
     );
 }

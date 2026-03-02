@@ -95,39 +95,13 @@ export default function SellerDashboard() {
                                     <Clock size={20} className="text-blue-500" />
                                     Orders to Prepare
                                 </h3>
-                                <span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-full">5 Pending</span>
+                                <span className="text-xs font-bold bg-slate-50 text-slate-600 px-2 py-1 rounded-full">0 Pending</span>
                             </div>
                             <div className="divide-y divide-slate-50">
-                                {[
-                                    { id: "#ORD-7782", item: "Premium Wireless Headphones", time: "10 mins ago", status: "New", price: "$199.99" },
-                                    { id: "#ORD-7781", item: "Organic Green Tea Set", time: "25 mins ago", status: "New", price: "$45.00" },
-                                    { id: "#ORD-7780", item: "Smart Home Hub", time: "1 hour ago", status: "Processing", price: "$129.50" },
-                                ].map((order, i) => (
-                                    <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
-                                                <Package size={20} />
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-slate-900">{order.item}</div>
-                                                <div className="text-xs text-slate-500 flex items-center gap-2">
-                                                    <span>{order.id}</span>
-                                                    <span>•</span>
-                                                    <span>{order.time}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <div className="text-right hidden sm:block">
-                                                <div className="font-bold text-slate-900">{order.price}</div>
-                                                <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full inline-block">{order.status}</div>
-                                            </div>
-                                            <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white font-bold">
-                                                Ready
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
+                                <div className="p-12 text-center text-slate-400">
+                                    <Package size={48} className="mx-auto mb-4 opacity-20" />
+                                    <p>No new orders to prepare.</p>
+                                </div>
                             </div>
                             <div className="p-4 text-center border-t border-slate-50">
                                 <Button variant="ghost" className="text-teal-600 font-bold hover:text-teal-700 hover:bg-teal-50">
@@ -181,26 +155,8 @@ export default function SellerDashboard() {
 
                         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
                             <h3 className="font-bold text-lg text-slate-900 mb-6">Top Products</h3>
-                            <div className="space-y-6">
-                                {[
-                                    { name: "Wireless Headphones", sales: "124 sold", rev: "$24k", width: "80%" },
-                                    { name: "Smart Watch Gen 2", sales: "98 sold", rev: "$18k", width: "65%" },
-                                    { name: "Laptop Stand", sales: "65 sold", rev: "$3.2k", width: "45%" },
-                                ].map((prod, i) => (
-                                    <div key={i}>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="font-medium text-slate-700 text-sm">{prod.name}</span>
-                                            <span className="font-bold text-slate-900 text-sm">{prod.rev}</span>
-                                        </div>
-                                        <div className="w-full bg-slate-100 rounded-full h-2">
-                                            <div
-                                                className="bg-teal-500 h-2 rounded-full"
-                                                style={{ width: prod.width }}
-                                            ></div>
-                                        </div>
-                                        <p className="text-xs text-slate-400 mt-1">{prod.sales}</p>
-                                    </div>
-                                ))}
+                            <div className="py-8 text-center">
+                                <p className="text-slate-400 text-sm italic">Analytics will appear once you have sales.</p>
                             </div>
                         </div>
 

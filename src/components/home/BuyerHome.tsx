@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ShoppingBag, Truck, CheckCircle, Zap, Star, Heart, Flame, ShieldCheck, User } from "lucide-react";
 import Link from "next/link";
-import { Footer } from "@/components/layout/Footer";
 import { useApp } from "@/providers/AppProvider";
 
 export function BuyerHome() {
@@ -241,7 +240,6 @@ export function BuyerHome() {
                 </div>
             </section>
 
-            <Footer />
         </main>
     );
 }
