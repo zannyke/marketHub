@@ -131,7 +131,11 @@ export default function NewProductPage() {
                                     </div>
                                 ) : (
                                     <CldUploadWidget
-                                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET as string}
+                                        onError={(error: any) => {
+                                            console.error("Cloudinary Error:", error);
+                                            alert("Image upload failed. Please try again or check your internet connection.");
+                                        }}
                                         options={{
                                             sources: ['local', 'camera', 'url'],
                                             multiple: false,
