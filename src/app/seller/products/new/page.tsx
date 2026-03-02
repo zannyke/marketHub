@@ -22,13 +22,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CldUploadWidget } from 'next-cloudinary';
 import { useApp } from '@/providers/AppProvider';
 
 export default function NewProductPage() {
     const router = useRouter();
     const { user, supabase } = useApp();
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [imageUrl, setImageUrl] = useState("");
     const [formData, setFormData] = useState({
@@ -39,6 +39,38 @@ export default function NewProductPage() {
         description: "",
         category: "Electronics"
     });
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { data, error } = await supabase.storage
+                .from('product-images')
+                .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+            if (error) {
+                throw error;
+            }
+
+            const { data: publicUrlData } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+
+            setImageUrl(publicUrlData.publicUrl);
+        } catch (error: any) {
+            console.error("Upload error:", error);
+            alert(`Image upload failed: ${error.message}`);
+        } finally {
+            setIsUploading(false);
+            e.target.value = '';
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -142,63 +174,26 @@ export default function NewProductPage() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <CldUploadWidget
-                                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET as string}
-                                        onError={(error: any) => {
-                                            console.error("Cloudinary Error:", error);
-                                            alert("Image upload failed. Please try again or check your internet connection.");
-                                        }}
-                                        onClose={() => {
-                                            document.body.style.overflow = '';
-                                        }}
-                                        options={{
-                                            sources: ['local', 'camera', 'url'],
-                                            multiple: false,
-                                            cropping: true,
-                                            maxFileSize: 5242880, // 5MB max to save memory
-                                            maxImageWidth: 2000,
-                                            maxImageHeight: 2000,
-                                            showAdvancedOptions: false,
-                                            defaultSource: 'local',
-                                            styles: {
-                                                palette: {
-                                                    window: "#FFFFFF",
-                                                    windowBorder: "#90A0B3",
-                                                    tabIcon: "#008B8B",
-                                                    menuIcons: "#5A616A",
-                                                    textDark: "#000000",
-                                                    textLight: "#FFFFFF",
-                                                    link: "#008B8B",
-                                                    action: "#008B8B",
-                                                    inactiveTabIcon: "#0E2F5A",
-                                                    error: "#F44235",
-                                                    inProgress: "#008B8B",
-                                                    complete: "#20B832",
-                                                    sourceBg: "#E4EBF1"
-                                                }
-                                            }
-                                        }}
-                                        onSuccess={(result: any) => {
-                                            if (result.info?.secure_url) {
-                                                setImageUrl(result.info.secure_url);
-                                            }
-                                            document.body.style.overflow = '';
-                                        }}
-                                    >
-                                        {({ open }) => (
-                                            <button
-                                                type="button"
-                                                onClick={() => open()}
-                                                className="w-full h-full flex flex-col items-center justify-center p-6 outline-none"
-                                            >
-                                                <div className="bg-white dark:bg-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 p-6 rounded-full mb-5 text-teal-600 transition-all duration-500 group-hover:scale-110 group-hover:shadow-teal-500/20 group-hover:-translate-y-2">
-                                                    <Upload size={32} />
-                                                </div>
-                                                <span className="font-extrabold text-slate-800 dark:text-white text-base">Upload Photo</span>
-                                                <span className="text-[10px] text-slate-400 mt-2 uppercase tracking-[0.2em] font-medium">Auto-Optimized</span>
-                                            </button>
-                                        )}
-                                    </CldUploadWidget>
+                                    <div className="w-full h-full relative group/upload">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            disabled={isUploading}
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        />
+                                        <div className="w-full h-full flex flex-col items-center justify-center p-6 outline-none">
+                                            <div className="bg-white dark:bg-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700 p-6 rounded-full mb-5 text-teal-600 transition-all duration-500 group-hover/upload:scale-110 group-hover/upload:shadow-teal-500/20 group-hover/upload:-translate-y-2">
+                                                {isUploading ? <Loader2 size={32} className="animate-spin" /> : <Upload size={32} />}
+                                            </div>
+                                            <span className="font-extrabold text-slate-800 dark:text-white text-base">
+                                                {isUploading ? "Uploading..." : "Upload Photo"}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 mt-2 uppercase tracking-[0.2em] font-medium">
+                                                Supabase Secure Storage
+                                            </span>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import { Star, Plus, Minus, Trash2 } from 'lucide-react';
@@ -112,6 +112,7 @@ ProductCard.displayName = "ProductCard";
 
 function MarketplaceContent() {
     const { addToCart, cartItems, removeFromCart, updateQuantity, supabase } = useApp();
+    const router = useRouter();
     const searchParams = useSearchParams();
     const category = searchParams.get('cat');
     const [products, setProducts] = React.useState<any[]>([]);
@@ -215,7 +216,7 @@ function MarketplaceContent() {
                 ) : (
                     <div className="text-center py-20 text-slate-500">
                         <p>No products found in this category.</p>
-                        <Button variant="link" onClick={() => window.location.href = '/marketplace'}>View All</Button>
+                        <Button variant="link" onClick={() => router.push('/marketplace')}>View All</Button>
                     </div>
                 )}
             </div>
