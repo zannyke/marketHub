@@ -54,8 +54,11 @@ export default function NewProductPage() {
         }
 
         setIsLoading(true);
+
         try {
-            const { error } = await supabase.from('products').insert({
+            // OPTIMISTIC PUBLISHING: Fire-and-forget the database insertion 
+            // so we don't wait for server latency. It inserts in the background.
+            supabase.from('products').insert({
                 title: formData.title,
                 description: formData.description,
                 price: parseFloat(formData.price),
@@ -63,14 +66,15 @@ export default function NewProductPage() {
                 tag: formData.condition,
                 image_url: imageUrl,
                 seller_id: user.id
+            }).then(({ error }) => {
+                if (error) console.error("Background sync error:", error);
             });
 
-            if (error) throw error;
-
-            // Fast transition to products page instead of a blocking alert
+            // Fast transition to products page instantly
             router.prefetch('/seller/products');
             setIsLoading(false);
             setSuccess(true);
+
             setTimeout(() => {
                 router.push('/seller/products');
             }, 600);
@@ -325,8 +329,8 @@ export default function NewProductPage() {
                                 type="submit"
                                 disabled={isLoading || !imageUrl || success}
                                 className={`flex-1 w-full sm:w-auto h-20 font-black rounded-[2rem] shadow-2xl transition-all duration-500 flex items-center justify-center gap-3 text-lg sm:text-xl group overflow-hidden ${success
-                                        ? 'bg-emerald-500 text-white hover:bg-emerald-500 shadow-emerald-500/40 scale-[0.98]'
-                                        : 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-500/30 hover:-translate-y-1'
+                                    ? 'bg-emerald-500 text-white hover:bg-emerald-500 shadow-emerald-500/40 scale-[0.98]'
+                                    : 'bg-teal-600 hover:bg-teal-700 text-white shadow-teal-500/30 hover:-translate-y-1'
                                     } disabled:opacity-70 disabled:hover:translate-y-0`}
                             >
                                 {isLoading ? (
