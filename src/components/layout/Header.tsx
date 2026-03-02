@@ -148,7 +148,7 @@ export const Header = () => {
 
                             {/* Enhanced Dropdown Menu with Footer Details */}
                             {isMenuOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right z-50 overflow-y-auto max-h-[85vh]">
+                                <div className="absolute right-0 top-full mt-2 w-72 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-teal-100 dark:border-teal-900/30 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right z-50 overflow-y-auto max-h-[85vh]">
                                     {/* User Info */}
                                     <div className="p-5 border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                                         <div className="flex items-center gap-3 mb-1">
@@ -248,7 +248,7 @@ export const Header = () => {
             >
                 <div
                     ref={mobileMenuRef}
-                    className={`absolute left-0 top-0 bottom-0 w-[280px] bg-white dark:bg-slate-900 shadow-2xl transition-transform duration-300 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                    className={`absolute left-0 top-0 bottom-0 w-[300px] bg-teal-50/98 dark:bg-slate-950/98 backdrop-blur-2xl shadow-2xl transition-transform duration-500 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} border-r border-teal-100 dark:border-teal-900/30`}
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="p-6 flex flex-col h-full">
