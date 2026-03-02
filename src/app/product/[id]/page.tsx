@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, MessageSquare, Lock, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/providers/AppProvider";
 
 export default function ProductPage({ params }: { params: { id: string } }) {
