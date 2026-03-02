@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import { Star, Plus, Minus, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 // Memoized Product Card
 const ProductCard = React.memo(({
@@ -21,85 +22,87 @@ const ProductCard = React.memo(({
     cartItem?: any
 }) => {
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group">
-            {/* Image Area */}
-            <div className="aspect-[4/3] bg-slate-50 dark:bg-slate-800/50 relative p-6 flex items-center justify-center overflow-hidden">
-                {item.tag && (
-                    <span className={`absolute top-4 left-4 ${item.tag_color || 'bg-teal-500'} text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10 tracking-wide uppercase`} >
-                        {item.tag}
-                    </span>
-                )}
-                <button className="absolute top-4 right-4 p-2 rounded-full bg-white/80 dark:bg-slate-900/80 hover:bg-white text-slate-400 hover:text-red-500 transition-colors z-10 shadow-sm backdrop-blur-sm">
-                    <Star size={16} />
-                </button>
+        <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group relative">
 
-                <img
-                    src={item.image_url || "/products/headphones.png"}
-                    alt={item.title}
-                    loading="lazy"
-                    className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-105"
-                />
-            </div>
-
-            {/* Content */}
-            <div className="p-5 flex flex-col flex-1">
-                <div className="mb-1">
-                    <span className="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{item.category}</span>
-                </div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1 line-clamp-2 md:h-12 leading-snug" title={item.title}>{item.title}</h3>
-
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center text-amber-400">
-                        <Star fill="currentColor" size={14} />
-                        <span className="ml-1 text-sm font-medium text-slate-700 dark:text-slate-300">{item.rating || 0}</span>
-                    </div>
-                    <span className="text-xs text-slate-400">•</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">{item.reviews_count || 0} reviews</span>
-                </div>
-
-                <div className="mt-auto pt-4 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between gap-3">
-                    <div className="flex flex-col">
-                        {item.old_price && <span className="text-xs text-slate-400 line-through decoration-slate-300 dark:decoration-slate-600">${parseFloat(item.old_price).toFixed(2)}</span>}
-                        <span className="text-xl font-bold text-slate-900 dark:text-white">${parseFloat(item.price).toFixed(2)}</span>
-                    </div>
-
-                    {cartItem ? (
-                        <div className="flex items-center gap-2">
-                            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full h-9 px-1">
-                                <button
-                                    onClick={() => onUpdateQty(cartItem.productId, cartItem.quantity - 1)}
-                                    className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-                                    disabled={cartItem.quantity <= 1}
-                                >
-                                    <Minus size={12} className="text-slate-600 dark:text-slate-300" />
-                                </button>
-                                <span className="text-xs font-bold w-6 text-center text-slate-900 dark:text-white">{cartItem.quantity}</span>
-                                <button
-                                    onClick={() => onUpdateQty(cartItem.productId, cartItem.quantity + 1)}
-                                    className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-slate-700 transition-colors"
-                                >
-                                    <Plus size={12} className="text-slate-600 dark:text-slate-300" />
-                                </button>
-                            </div>
-                            <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={() => onRemove(cartItem.productId)}
-                                className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
-                            >
-                                <Trash2 size={16} />
-                            </Button>
-                        </div>
-                    ) : (
-                        <Button
-                            size="sm"
-                            onClick={() => onAdd(item)}
-                            className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-full px-5 h-9 shadow-none transition-colors active:scale-95"
-                        >
-                            Add
-                        </Button>
+            {/* Clickable Area linking to Product Detail Page */}
+            <Link href={`/product/${item.id}`} className="flex flex-col flex-1 cursor-pointer">
+                {/* Image Area */}
+                <div className="aspect-[4/3] bg-slate-50 dark:bg-slate-800/50 relative p-6 flex items-center justify-center overflow-hidden">
+                    {item.tag && (
+                        <span className={`absolute top-4 left-4 ${item.tag_color || 'bg-teal-500'} text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10 tracking-wide uppercase`} >
+                            {item.tag}
+                        </span>
                     )}
+
+                    <img
+                        src={item.image_url || "/products/headphones.png"}
+                        alt={item.title}
+                        loading="lazy"
+                        className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-105"
+                    />
                 </div>
+
+                {/* Content */}
+                <div className="p-5 flex flex-col flex-1">
+                    <div className="mb-1 flex justify-between items-start">
+                        <span className="text-xs font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{item.category}</span>
+                    </div>
+                    <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1 line-clamp-2 md:h-12 leading-snug group-hover:text-teal-600 transition-colors" title={item.title}>{item.title}</h3>
+
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center text-amber-400">
+                            <Star fill="currentColor" size={14} />
+                            <span className="ml-1 text-sm font-medium text-slate-700 dark:text-slate-300">{item.rating || 0}</span>
+                        </div>
+                        <span className="text-xs text-slate-400">•</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">{item.reviews_count || 0} reviews</span>
+                    </div>
+                </div>
+            </Link>
+
+            {/* Bottom Actions Area (Independent of the Link to prevent accidental navigation when adding to cart) */}
+            <div className="px-5 pb-5 mt-auto pt-4 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between gap-3">
+                <div className="flex flex-col">
+                    {item.old_price && <span className="text-xs text-slate-400 line-through decoration-slate-300 dark:decoration-slate-600">${parseFloat(item.old_price).toFixed(2)}</span>}
+                    <span className="text-xl font-bold text-slate-900 dark:text-white">${parseFloat(item.price).toFixed(2)}</span>
+                </div>
+
+                {cartItem ? (
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full h-9 px-1">
+                            <button
+                                onClick={() => onUpdateQty(cartItem.productId, cartItem.quantity - 1)}
+                                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                                disabled={cartItem.quantity <= 1}
+                            >
+                                <Minus size={12} className="text-slate-600 dark:text-slate-300" />
+                            </button>
+                            <span className="text-xs font-bold w-6 text-center text-slate-900 dark:text-white">{cartItem.quantity}</span>
+                            <button
+                                onClick={() => onUpdateQty(cartItem.productId, cartItem.quantity + 1)}
+                                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                            >
+                                <Plus size={12} className="text-slate-600 dark:text-slate-300" />
+                            </button>
+                        </div>
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => onRemove(cartItem.productId)}
+                            className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+                        >
+                            <Trash2 size={16} />
+                        </Button>
+                    </div>
+                ) : (
+                    <Button
+                        size="sm"
+                        onClick={() => onAdd(item)}
+                        className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-full px-5 h-9 shadow-none transition-colors active:scale-95"
+                    >
+                        Add
+                    </Button>
+                )}
             </div>
         </div>
     );
