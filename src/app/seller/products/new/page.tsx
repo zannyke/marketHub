@@ -46,13 +46,43 @@ export default function NewProductPage() {
 
         setIsUploading(true);
         try {
-            const fileExt = file.name.split('.').pop();
+            // Compress Image
+            const compressedFile = await new Promise<File>((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let { width, height } = img;
+                    const MAX_SIZE = 1200;
+
+                    if (width > height && width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    } else if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                        else reject(new Error('Compression failed'));
+                    }, 'image/jpeg', 0.8); // 80% JPEG Quality
+                };
+                img.onerror = () => reject(new Error('Image processing failed'));
+                img.src = URL.createObjectURL(file);
+            });
+
+            const fileExt = compressedFile.name.split('.').pop() || 'jpg';
             const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
             const filePath = `${fileName}`;
 
             const { data, error } = await supabase.storage
                 .from('product-images')
-                .upload(filePath, file, { cacheControl: '3600', upsert: false });
+                .upload(filePath, compressedFile, { cacheControl: '3600', upsert: false });
 
             if (error) {
                 throw error;
