@@ -118,3 +118,45 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- 5. Products Table (The items for sale)
+create table if not exists public.products (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  description text,
+  category text,
+  price numeric not null,
+  old_price numeric,
+  image_url text,
+  tag text,
+  tag_color text,
+  rating numeric default 0,
+  reviews_count int default 0,
+  seller_id uuid references public.profiles(id) on delete cascade not null,
+  created_at timestamptz default now()
+);
+
+-- 6. Cart Items Table (User shopping carts)
+create table if not exists public.cart_items (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  product_id uuid references public.products(id) on delete cascade,
+  temp_product_id text, -- For mock products if needed
+  quantity int default 1,
+  product_metadata jsonb, -- Backwards compatibility
+  created_at timestamptz default now()
+);
+
+-- 7. Security Policies (RLS)
+alter table public.products enable row level security;
+alter table public.cart_items enable row level security;
+
+-- Products: Everyone can view, but only the owner (seller) can edit/delete
+drop policy if exists "Products viewable by everyone" on public.products;
+create policy "Products viewable by everyone" on public.products for select using (true);
+drop policy if exists "Sellers can manage their own products" on public.products;
+create policy "Sellers can manage their own products" on public.products for all using (auth.uid() = seller_id);
+
+-- Cart Items: Users can only see/edit their own cart
+drop policy if exists "Users can manage their own cart" on public.cart_items;
+create policy "Users can manage their own cart" on public.cart_items for all using (auth.uid() = user_id);

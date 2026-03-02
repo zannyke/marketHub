@@ -115,39 +115,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
                 // Restore Cart
                 await fetchCart(user.id);
-
-                // Login tracking is handled by onAuthStateChange (SIGNED_IN) to ensure accuracy
             };
 
-            const userCheckPromise = checkUserSession();
-
-            // Race against timeout to unblock UI
-            const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve('TIMEOUT'), 4000));
-
-            const result = await Promise.race([userCheckPromise, timeoutPromise]);
-
-            if (result === 'TIMEOUT') {
-                console.warn("AppProvider: Auth check timed out - Unblocking UI, waiting in background...");
-                setIsLoading(false);
-
-                // Handle the slow response when it finally arrives
-                userCheckPromise.then(delayedUser => {
-                    if (delayedUser) {
-                        console.log("AppProvider: Background auth check finished. Updating user.");
-                        if (mounted) {
-                            setUser(delayedUser);
-                            handleUserFound(delayedUser);
-                        }
-                    }
-                });
-            } else {
-                // Check finished fast
-                const activeUser = result as User | null;
-                if (activeUser) {
-                    await handleUserFound(activeUser);
-                }
-                setIsLoading(false);
+            const activeUser = await checkUserSession();
+            if (activeUser) {
+                await handleUserFound(activeUser as User);
             }
+            setIsLoading(false);
         };
 
         // Listen for Auth Changes (Login, Logout, Auto-Refresh)

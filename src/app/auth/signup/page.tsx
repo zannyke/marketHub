@@ -47,8 +47,7 @@ export default function SignupPage() {
         const nationalId = formData.get("nationalId") as string;
 
         try {
-            // Race against a timeout to prevent hanging
-            const signUpPromise = supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
@@ -66,13 +65,6 @@ export default function SignupPage() {
                     },
                 },
             });
-
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Request timed out. If you aren't redirected soon, please check your email for a confirmation link.")), 30000)
-            );
-
-            // @ts-ignore
-            const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
 
             if (error) {
                 setError(error.message);

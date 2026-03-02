@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import { Star, Plus, Minus, Trash2 } from 'lucide-react';
-import { generateProducts } from "@/lib/products";
 
 // Memoized Product Card
 const ProductCard = React.memo(({
@@ -26,7 +25,7 @@ const ProductCard = React.memo(({
             {/* Image Area */}
             <div className="aspect-[4/3] bg-slate-50 dark:bg-slate-800/50 relative p-6 flex items-center justify-center overflow-hidden">
                 {item.tag && (
-                    <span className={`absolute top-4 left-4 ${item.tagColor} text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10 tracking-wide uppercase`} >
+                    <span className={`absolute top-4 left-4 ${item.tag_color || 'bg-teal-500'} text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10 tracking-wide uppercase`} >
                         {item.tag}
                     </span>
                 )}
@@ -35,7 +34,7 @@ const ProductCard = React.memo(({
                 </button>
 
                 <img
-                    src={item.image}
+                    src={item.image_url || "/products/headphones.png"}
                     alt={item.title}
                     loading="lazy"
                     className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 group-hover:scale-105"
@@ -52,16 +51,16 @@ const ProductCard = React.memo(({
                 <div className="flex items-center gap-2 mb-4">
                     <div className="flex items-center text-amber-400">
                         <Star fill="currentColor" size={14} />
-                        <span className="ml-1 text-sm font-medium text-slate-700 dark:text-slate-300">{item.rating}</span>
+                        <span className="ml-1 text-sm font-medium text-slate-700 dark:text-slate-300">{item.rating || 0}</span>
                     </div>
                     <span className="text-xs text-slate-400">•</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">{item.reviews} reviews</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{item.reviews_count || 0} reviews</span>
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between gap-3">
                     <div className="flex flex-col">
-                        <span className="text-xs text-slate-400 line-through decoration-slate-300 dark:decoration-slate-600">${item.oldPrice.toFixed(2)}</span>
-                        <span className="text-xl font-bold text-slate-900 dark:text-white">${item.price.toFixed(2)}</span>
+                        {item.old_price && <span className="text-xs text-slate-400 line-through decoration-slate-300 dark:decoration-slate-600">${parseFloat(item.old_price).toFixed(2)}</span>}
+                        <span className="text-xl font-bold text-slate-900 dark:text-white">${parseFloat(item.price).toFixed(2)}</span>
                     </div>
 
                     {cartItem ? (
@@ -109,26 +108,52 @@ const ProductCard = React.memo(({
 ProductCard.displayName = "ProductCard";
 
 function MarketplaceContent() {
-    const { addToCart, cartItems, removeFromCart, updateQuantity } = useApp();
+    const { addToCart, cartItems, removeFromCart, updateQuantity, supabase } = useApp();
     const searchParams = useSearchParams();
     const category = searchParams.get('cat');
+    const [products, setProducts] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
 
-    // Generate and Filter Products
-    const products = useMemo(() => {
-        const allProducts = generateProducts(1001);
-        if (!category) return allProducts;
+    React.useEffect(() => {
+        const fetchProducts = async () => {
+            setLoading(true);
+            try {
+                let query = supabase.from('products').select('*');
 
-        const target = category.toLowerCase();
+                if (category) {
+                    const target = category.toLowerCase();
+                    if (target === 'trending') {
+                        query = query.eq('tag', 'Hot');
+                    } else if (target === 'gadgets') {
+                        query = query.ilike('category', 'electronics');
+                    } else if (target === 'home') {
+                        query = query.ilike('category', '%home%');
+                    } else {
+                        query = query.ilike('category', category);
+                    }
+                }
 
-        return allProducts.filter(item => {
-            const itemCat = item.category.toLowerCase();
-            if (target === 'trending') return item.tag === 'Hot';
-            if (target === 'gadgets') return itemCat === 'electronics';
-            if (target === 'home') return itemCat.includes('home');
-            return itemCat === target || itemCat.includes(target);
-        });
-    }, [category]);
+                const { data, error } = await query.order('created_at', { ascending: false });
+                if (error) throw error;
+                setProducts(data || []);
+            } catch (err) {
+                console.error("Error fetching products:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
+        fetchProducts();
+    }, [category, supabase]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen pt-40 text-center flex flex-col items-center gap-4">
+                <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-slate-500 font-medium animate-pulse">Browsing MarketHub...</p>
+            </div>
+        );
+    }
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 pb-24">
 

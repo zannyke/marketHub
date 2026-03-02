@@ -55,61 +55,19 @@ export default function LoginPage() {
                 return;
             }
 
-            // STRATEGY 1: Standard SDK Login
-            const sdkPromise = supabase.auth.signInWithPassword({ email, password });
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("SDK Timeout")), 10000));
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-            // @ts-ignore
-            const { data, error } = await Promise.race([sdkPromise, timeoutPromise]);
-
-            if (!error && data?.session) {
-                handleSuccess();
-                return;
+            if (error) {
+                throw error;
             }
 
-            if (error) throw error; // If strict error, throw to catch block (or maybe fallback?)
-
-        } catch (sdkError: any) {
-            console.warn("SDK Login failed/timed out, attempting Raw REST fallback...", sdkError);
-            addLog(`SDK failed (${sdkError.message}). Trying fallback...`);
-
-            // STRATEGY 2: Raw REST Fallback
-            try {
-                const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-                const sbKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-                if (!sbUrl || !sbKey) throw new Error("Missing Supabase Config");
-
-                const res = await fetch(`${sbUrl}/auth/v1/token?grant_type=password`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "apikey": sbKey
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    throw new Error(data.error_description || "Login failed");
-                }
-
-                // Manually set session
-                const { error: sessionError } = await supabase.auth.setSession({
-                    access_token: data.access_token,
-                    refresh_token: data.refresh_token
-                });
-
-                if (sessionError) throw sessionError;
-
+            if (data?.session) {
                 handleSuccess();
-
-            } catch (fallbackError: any) {
-                console.error("All login attempts failed", fallbackError);
-                setError(fallbackError.message || "Unable to log in. Please check your connection.");
-                setLoading(false);
             }
+        } catch (err: any) {
+            console.error("Login error:", err);
+            setError(err.message || "Unable to log in. Please check your credentials.");
+            setLoading(false);
         }
     }
 
