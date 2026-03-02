@@ -1,12 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { Header } from "@/components/layout/Header";
-import { useApp } from "@/providers/AppProvider";
 import { Loader2, Shield, Bot, Zap, ShoppingBag } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
-const PremiumLoader = () => {
+export default function Loading() {
     const [dots, setDots] = useState("");
 
     useEffect(() => {
@@ -74,27 +71,4 @@ const PremiumLoader = () => {
             `}</style>
         </div>
     );
-};
-
-export const AppShell = ({ children }: { children: React.ReactNode }) => {
-    const pathname = usePathname();
-    const isAuthPage = pathname?.startsWith("/auth");
-    const { isLoading } = useApp();
-
-    if (isLoading) {
-        return <PremiumLoader />;
-    }
-
-    if (isAuthPage) {
-        return <>{children}</>;
-    }
-
-    return (
-        <>
-            <Header />
-            <div className="min-h-[calc(100vh-73px)]">
-                {children}
-            </div>
-        </>
-    );
-};
+}
