@@ -1,17 +1,29 @@
 "use client";
 
-import { Loader2, Shield, Bot, Zap, ShoppingBag } from "lucide-react";
+import { Shield, Zap, ShoppingBag, Store, Users, Truck, Package, Bot } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
+const ICONS = [
+    { icon: Shield, color: "text-white", bg: "from-teal-600 to-teal-900" },
+    { icon: ShoppingBag, color: "text-white", bg: "from-rose-500 to-rose-700" },
+    { icon: Store, color: "text-white", bg: "from-amber-500 to-amber-700" },
+    { icon: Users, color: "text-white", bg: "from-blue-600 to-blue-800" },
+    { icon: Truck, color: "text-white", bg: "from-indigo-600 to-indigo-800" },
+    { icon: Package, color: "text-white", bg: "from-emerald-600 to-emerald-800" },
+    { icon: Zap, color: "text-white", bg: "from-purple-600 to-purple-800" },
+];
+
 export default function Loading() {
-    const [dots, setDots] = useState("");
+    const [iconIndex, setIconIndex] = useState(0);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setDots(prev => prev.length >= 3 ? "" : prev + ".");
-        }, 400);
+            setIconIndex((prev) => (prev + 1) % ICONS.length);
+        }, 1200);
         return () => clearInterval(interval);
     }, []);
+
+    const CurrentIcon = ICONS[iconIndex].icon;
 
     return (
         <div className="fixed inset-0 z-[9999] h-screen w-full flex flex-col items-center justify-center bg-white dark:bg-slate-950 overflow-hidden">
@@ -21,18 +33,21 @@ export default function Loading() {
 
             <div className="relative z-10 flex flex-col items-center">
                 {/* Logo Animation */}
-                <div className="relative mb-14 drop-shadow-2xl">
+                <div className="relative mb-14 drop-shadow-2xl h-28 w-28">
                     <div className="absolute inset-0 bg-teal-500/20 rounded-[2.5rem] blur-3xl animate-pulse"></div>
-                    <div className="w-28 h-28 bg-gradient-to-br from-teal-600 to-teal-900 rounded-[2.5rem] shadow-2xl flex items-center justify-center relative rotate-3 animate-bounce shadow-teal-500/20">
-                        <Shield size={42} className="text-white drop-shadow-md" />
-                    </div>
-                    {/* Floating Brand Icons */}
-                    <div className="absolute -top-4 -right-4 p-2.5 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 animate-bounce delay-150 transition-all hover:scale-110">
-                        <Zap size={22} className="text-amber-500" />
-                    </div>
-                    <div className="absolute -bottom-6 -left-6 p-2.5 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 animate-bounce delay-300 transition-all hover:scale-110">
-                        <ShoppingBag size={22} className="text-rose-500" />
-                    </div>
+
+                    {ICONS.map((item, idx) => {
+                        const IconComp = item.icon;
+                        return (
+                            <div
+                                key={idx}
+                                className={`absolute inset-0 bg-gradient-to-br ${item.bg} rounded-[2.5rem] shadow-2xl flex items-center justify-center transition-all duration-700 transform ${idx === iconIndex ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-75 -rotate-12'
+                                    }`}
+                            >
+                                <IconComp size={42} className="text-white drop-shadow-md" />
+                            </div>
+                        );
+                    })}
                 </div>
 
                 <div className="text-center group">
@@ -48,18 +63,6 @@ export default function Loading() {
                     <span className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-[0.4em]">Swifft Escrow System Online</span>
                 </div>
             </div>
-
-            <style jsx>{`
-                @keyframes shimmer {
-                    from { transform: translateX(-150%); }
-                    to { transform: translateX(150%); }
-                }
-                .animate-shimmer {
-                    animation: shimmer 1.8s infinite cubic-bezier(0.445, 0.05, 0.55, 0.95);
-                    width: 70%;
-                    box-shadow: 0 0 20px rgba(0, 139, 139, 0.5);
-                }
-            `}</style>
         </div>
     );
 }

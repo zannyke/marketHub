@@ -28,6 +28,16 @@ const LIB_QUESTIONS = [
     }
 ];
 
+const GREETINGS_LIB = [
+    { keywords: ["hi", "hello", "hey", "hujambo", "mambo", "sasa"], response: "Hello! I am Nexus AI, your premium assistant. How can I help you navigate MarketHub today?" },
+    { keywords: ["good morning", "asubuhi njema"], response: "Good morning! Wishing you a productive day. How can I assist you with your orders or store setup?" },
+    { keywords: ["good afternoon", "mchana mwema"], response: "Good afternoon! I'm here to help. Are you looking for something specific on the marketplace?" },
+    { keywords: ["good evening", "jioni njema"], response: "Good evening! Nexus AI is still online and ready to assist. How was your day?" },
+    { keywords: ["how are you", "unakuaje", "mambo vipi"], response: "I'm functioning at peak efficiency and ready to help you! How are things on your end?" },
+    { keywords: ["thank you", "asante", "thanks"], response: "You're very welcome! I'm always here if you need anything else. Happy shopping!" },
+    { keywords: ["bye", "goodbye", "kwaheri"], response: "Goodbye! I'll be here whenever you need me. Stay safe and have a great time!" }
+];
+
 export const AiAssistant = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
@@ -62,11 +72,18 @@ export const AiAssistant = () => {
 
         // Simulate AI response
         setTimeout(() => {
-            const lowerText = textToUse.toLowerCase();
+            const lowerText = textToUse.toLowerCase().trim();
             let response = "";
             let shouldShowContact = false;
 
-            if (lowerText.includes('help') || lowerText.includes('support') || lowerText.includes('human') || lowerText.includes('admin')) {
+            // Check Greeting Library first
+            const matchingGreeting = GREETINGS_LIB.find(g =>
+                g.keywords.some(k => lowerText === k || lowerText.startsWith(k + " ") || lowerText.endsWith(" " + k))
+            );
+
+            if (matchingGreeting) {
+                response = matchingGreeting.response;
+            } else if (lowerText.includes('help') || lowerText.includes('support') || lowerText.includes('human') || lowerText.includes('admin')) {
                 response = "I understand you need specialized assistance. Would you like to alert our administration team or speak with customer care?";
                 shouldShowContact = true;
             } else if (lowerText.includes('seller')) {
@@ -157,21 +174,23 @@ export const AiAssistant = () => {
 
                         {/* Admin Alert Button */}
                         {showContact && (
-                            <div className="pt-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800 p-4 rounded-2xl">
-                                    <p className="text-xs text-teal-800 dark:text-teal-300 font-medium mb-3">Would you like to speak with a human?</p>
-                                    <div className="flex flex-col gap-2">
-                                        <Button
-                                            onClick={() => alert("Admin Alerted! Our team will contact you shortly.")}
-                                            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl h-10 text-xs shadow-lg shadow-teal-500/30"
-                                        >
-                                            <MessageSquare size={14} className="mr-2" /> Alert Admin Now
+                            <div className="pt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-teal-100 dark:border-teal-900/30 p-4 shadow-xl">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-10 h-10 rounded-full bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600">
+                                            <Headphones size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-bold text-slate-900 dark:text-white">Professional Support</h4>
+                                            <p className="text-[10px] text-slate-500">Available 24/7 for critical issues</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Button className="bg-[#008B8B] hover:bg-teal-700 text-white text-[10px] font-bold h-9">
+                                            Alert Admin
                                         </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full border-teal-200 text-teal-700 hover:bg-teal-50 font-bold rounded-xl h-10 text-xs"
-                                        >
-                                            <Headphones size={14} className="mr-2" /> Contact Customer Care
+                                        <Button variant="outline" className="text-[10px] font-bold h-9 border-slate-200 dark:border-slate-700">
+                                            Live Chat
                                         </Button>
                                     </div>
                                 </div>
@@ -180,35 +199,37 @@ export const AiAssistant = () => {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input */}
-                    <div className="p-4 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex gap-2">
-                        <Input
-                            value={input}
-                            onChange={e => setInput(e.target.value)}
-                            placeholder="Type a message..."
-                            onKeyDown={e => e.key === 'Enter' && send()}
-                            className="flex-1 bg-slate-50 dark:bg-slate-900 border-transparent focus-visible:ring-[#008B8B] rounded-xl h-11 text-sm shadow-inner"
-                        />
-                        <Button
-                            onClick={() => send()}
-                            className="bg-[#008B8B] hover:bg-[#007070] text-white shrink-0 rounded-xl w-11 h-11 flex items-center justify-center shadow-lg shadow-teal-500/20"
-                        >
-                            <Send size={18} />
-                        </Button>
+                    {/* Input Area */}
+                    <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:border-teal-500/50 transition-all">
+                            <Input
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && send()}
+                                placeholder="Ask Nexus anything..."
+                                className="border-none bg-transparent focus-visible:ring-0 text-xs h-9"
+                            />
+                            <Button
+                                onClick={() => send()}
+                                className="bg-[#008B8B] hover:bg-teal-700 text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20 shrink-0"
+                            >
+                                <Send size={16} />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* FAB */}
+            {/* Float Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-16 h-16 bg-[#008B8B] hover:bg-[#007070] text-white rounded-full flex items-center justify-center shadow-2xl hover:shadow-teal-500/40 hover:scale-110 transition-all duration-300 group relative overflow-hidden"
+                className="w-16 h-16 bg-[#008B8B] text-white rounded-[2rem] shadow-2xl shadow-teal-500/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 group"
             >
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                {isOpen ? (
-                    <X size={32} className="transition-transform duration-300 group-hover:rotate-90" />
-                ) : (
-                    <Bot size={32} className="transition-transform duration-300 group-hover:-translate-y-1" />
+                {isOpen ? <X size={28} /> : (
+                    <div className="relative">
+                        <MessageSquare size={28} />
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-white dark:border-teal-800 rounded-full"></span>
+                    </div>
                 )}
             </button>
         </div>

@@ -267,7 +267,7 @@ export const Header = () => {
             >
                 <div
                     ref={mobileMenuRef}
-                    className={`absolute left-0 top-0 bottom-0 w-[300px] bg-teal-50/98 dark:bg-slate-950/98 backdrop-blur-2xl shadow-2xl transition-transform duration-500 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} border-r border-teal-100 dark:border-teal-900/30`}
+                    className={`absolute left-0 top-0 bottom-0 w-[300px] bg-gradient-to-b from-white to-teal-50 dark:from-slate-900 dark:to-slate-950 backdrop-blur-3xl shadow-2xl transition-transform duration-500 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} border-r border-teal-100/50 dark:border-teal-900/30`}
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="p-6 flex flex-col h-full">
@@ -286,7 +286,7 @@ export const Header = () => {
                             <Link
                                 href="/"
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                                className="flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 font-semibold hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:text-teal-600 dark:hover:text-teal-400 transition-all active:scale-95"
                             >
                                 <LayoutDashboard size={18} className="text-teal-500" /> Home
                             </Link>
@@ -302,7 +302,7 @@ export const Header = () => {
                                     key={i}
                                     href={link.href}
                                     onClick={() => setIsMobileMenuOpen(false)}
-                                    className="flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    className="flex items-center gap-3 p-3 rounded-xl text-slate-700 dark:text-slate-200 font-semibold hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:text-teal-600 dark:hover:text-teal-400 transition-all active:scale-95"
                                 >
                                     {link.label === 'Marketplace' && <ShoppingBag size={18} className="text-teal-500" />}
                                     {link.label === 'My Orders' && <Truck size={18} className="text-teal-500" />}
