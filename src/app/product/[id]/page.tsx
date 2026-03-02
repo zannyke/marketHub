@@ -9,10 +9,34 @@ import { useState } from "react";
 import { useApp } from "@/providers/AppProvider";
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-    const { addToCart, user } = useApp();
+    const { addToCart, user, supabase } = useApp();
     const [messages, setMessages] = useState<{ sender: string, text: string }[]>([]);
     const [input, setInput] = useState("");
     const [locked, setLocked] = useState(false);
+    const [product, setProduct] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            setLoading(true);
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('id', params.id)
+                    .single();
+
+                if (error) throw error;
+                setProduct(data);
+            } catch (err) {
+                console.error("Error fetching product:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (params.id) fetchProduct();
+    }, [params.id, supabase]);
 
     const handleSend = () => {
         if (!input.trim()) return;
@@ -23,128 +47,188 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         }, 1000);
     };
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+            </div>
+        );
+    }
+
+    if (!product) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 text-center">
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Product Not Found</h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-8">The product you're looking for doesn't exist or has been removed.</p>
+                <Link href="/marketplace">
+                    <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-full px-8">Return to Marketplace</Button>
+                </Link>
+            </div>
+        );
+    }
+
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 2rem' }}>
-            <Link href="/marketplace" style={{ display: 'inline-flex', alignItems: 'center', marginBottom: '2rem', color: 'var(--text-secondary)' }}>
-                <ArrowLeft size={16} className="mr-2" style={{ marginRight: '8px' }} /> Back to Marketplace
-            </Link>
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+                <Link href="/marketplace" className="inline-flex items-center text-slate-500 hover:text-teal-600 mb-8 transition-colors group">
+                    <ArrowLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to Marketplace
+                </Link>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '4rem' }}>
-                <div>
-                    <div style={{
-                        height: '400px',
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)',
-                        borderRadius: '24px',
-                        marginBottom: '2rem',
-                        border: '1px solid var(--glass-border)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>Interactive Demo Placeholder</span>
-                    </div>
-
-                    <div style={{ marginBottom: '1rem' }}>
-                        <span style={{ background: 'rgba(0, 243, 255, 0.1)', color: 'var(--accent-blue)', padding: '4px 12px', borderRadius: '100px', fontSize: '0.8rem', fontWeight: 600 }}>PREMIUM GOODS</span>
-                    </div>
-
-                    <h1 className="text-gradient" style={{ fontSize: '3rem', fontWeight: 700, marginBottom: '1rem' }}>MarketHub Item {params.id}</h1>
-                    <p className="text-secondary" style={{ fontSize: '1.1rem', lineHeight: '1.7', marginBottom: '3rem' }}>
-                        Top quality product verified by Identity Shield. Escrow payments supported via Swift Financial Engine. Ships immediately through certified Logistics hub.
-                    </p>
-
-                    <div className="glass" style={{ padding: '2rem', borderRadius: '16px' }}>
-                        <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Key Capabilities</h3>
-                        <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                            {['Authenticity Verified', 'Identity Shield Covered', 'Swift 70/30 Engine', 'Insured Logistics Routing', 'Buyer Protection', 'New In Box'].map(feat => (
-                                <li key={feat} style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
-                                    <CheckCircle size={16} color="var(--accent-blue)" style={{ marginRight: '10px' }} /> {feat}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    <Card style={{ padding: '2rem' }}>
-                        <h2 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>$49.99</h2>
-                        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Fixed price. Negotiable via chat.</p>
-
-                        <Button
-                            size="lg"
-                            className="bg-teal-600 hover:bg-teal-700 text-white"
-                            style={{ width: '100%', marginBottom: '1rem' }}
-                            onClick={() => addToCart({
-                                id: params.id,
-                                productId: params.id,
-                                title: `MarketHub Item ${params.id}`,
-                                price: 49.99,
-                                quantity: 1,
-                                category: 'Premium'
-                            })}
-                        >
-                            Add to Cart
-                        </Button>
-                        <Button variant="outline" className="w-full" style={{ width: '100%' }}>View Live Demo</Button>
-
-                        <div style={{ marginTop: '2rem', borderTop: '1px solid var(--glass-border)', paddingTop: '2rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-                                <span style={{ color: 'var(--text-secondary)' }}>Condition</span>
-                                <strong>Brand New</strong>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-slate-500">Protection</span>
-                                <span className="font-bold text-teal-600 flex items-center gap-1">
-                                    <ShieldCheck size={14} /> Identity Shield
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+                    {/* Left Column: Image & Details */}
+                    <div className="lg:col-span-7">
+                        <div className="aspect-[4/3] w-full bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-center p-8 mb-10 relative group">
+                            {product.tag && (
+                                <span className="absolute top-6 left-6 bg-teal-500 text-white text-xs font-bold px-4 py-1.5 rounded-full z-10 shadow-lg uppercase tracking-wider">
+                                    {product.tag}
                                 </span>
+                            )}
+                            <img
+                                src={product.image_url || "/products/headphones.png"}
+                                alt={product.title}
+                                className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transform transition-transform duration-700 group-hover:scale-105"
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <span className="inline-block bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-teal-100 dark:border-teal-800">
+                                {product.category || 'PREMIUM GOODS'}
+                            </span>
+                        </div>
+
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight leading-tight">
+                            {product.title}
+                        </h1>
+
+                        <p className="text-lg text-slate-500 dark:text-slate-400 mb-10 leading-relaxed max-w-2xl">
+                            {product.description || "No description provided for this premium item. Verified by Identity Shield and protected by Swift Escrow Engine."}
+                        </p>
+
+                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-3xl shadow-sm mb-12">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                                <ShieldCheck className="text-teal-500" /> Key Capabilities
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+                                {[
+                                    'Authenticity Verified',
+                                    'Identity Shield Covered',
+                                    'Swift 70/30 Engine',
+                                    'Insured Logistics Routing',
+                                    'Buyer Protection',
+                                    'New In Box'
+                                ].map((feat, i) => (
+                                    <div key={i} className="flex items-center text-slate-600 dark:text-slate-400 text-sm font-medium">
+                                        <CheckCircle size={16} className="text-teal-500 mr-3 shrink-0" /> {feat}
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    </Card>
+                    </div>
 
-                    {/* Negotiation Protocol Module */}
-                    <Card style={{ padding: '1.5rem', border: '1px solid #e2e8f0', background: '#f8fafc' }}>
-                        <div className="flex items-center gap-2 mb-4">
-                            <MessageSquare size={18} className="text-slate-600" />
-                            <h3 className="font-bold text-slate-800">Negotiaton Center</h3>
-                        </div>
+                    {/* Right Column: Pricing & Chat */}
+                    <div className="lg:col-span-5 space-y-8">
+                        <Card className="p-8 sm:p-10 bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-xl rounded-[32px] overflow-hidden relative">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/5 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
 
-                        <div className="bg-white border border-slate-200 rounded-lg p-3 h-48 overflow-y-auto mb-4 flex flex-col gap-2">
-                            {messages.length === 0 ? (
-                                <p className="text-xs text-slate-400 text-center mt-10">Send a message to start negotiating</p>
-                            ) : (
-                                messages.map((m, i) => (
-                                    <div key={i} className={`p-2 rounded-lg text-sm max-w-[80%] ${m.sender === 'You' ? 'bg-teal-50 ml-auto text-teal-900 border border-teal-100' : 'bg-slate-50 mr-auto text-slate-800 border border-slate-100'}`}>
-                                        <div className="text-[10px] font-bold opacity-50 mb-1">{m.sender}</div>
-                                        <div>{m.text}</div>
+                            <div className="relative mb-8">
+                                <div className="flex items-baseline gap-4 mb-2">
+                                    <h2 className="text-5xl font-black text-slate-900 dark:text-white">
+                                        ${product.price ? parseFloat(product.price).toFixed(2) : '0.00'}
+                                    </h2>
+                                    {product.old_price && (
+                                        <span className="text-xl text-slate-400 line-through">
+                                            ${parseFloat(product.old_price).toFixed(2)}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-slate-500 dark:text-slate-400 font-medium">Fixed price. Negotiable via chat below.</p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Button
+                                    size="lg"
+                                    className="w-full h-16 bg-teal-600 hover:bg-teal-700 text-white font-bold text-lg rounded-2xl shadow-lg shadow-teal-500/20 transform active:scale-95 transition-all"
+                                    onClick={() => addToCart({
+                                        id: product.id,
+                                        productId: product.id,
+                                        title: product.title,
+                                        price: product.price,
+                                        image_url: product.image_url,
+                                        category: product.category,
+                                        quantity: 1
+                                    })}
+                                >
+                                    Add to Cart
+                                </Button>
+                                <Button variant="outline" className="w-full h-14 border-2 border-slate-100 dark:border-slate-800 font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                    View Live Demo
+                                </Button>
+                            </div>
+
+                            <div className="mt-10 pt-8 border-t border-slate-50 dark:border-slate-800 space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-slate-500 dark:text-slate-400">Condition</span>
+                                    <span className="text-sm font-bold text-slate-900 dark:text-white">Brand New</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-slate-500 dark:text-slate-400">Protection</span>
+                                    <span className="text-sm font-bold text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
+                                        <ShieldCheck size={16} /> Identity Shield Enabled
+                                    </span>
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Negotiation Center */}
+                        <Card className="p-8 bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-lg rounded-[32px] overflow-hidden">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                                    <MessageSquare size={20} className="text-slate-600 dark:text-slate-400" />
+                                </div>
+                                <h3 className="font-bold text-xl text-slate-900 dark:text-white uppercase tracking-tight">Negotiation Center</h3>
+                            </div>
+
+                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 h-60 overflow-y-auto mb-6 flex flex-col gap-3 scrollbar-hide">
+                                {messages.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-full opacity-40 text-center px-4">
+                                        <p className="text-sm font-medium text-slate-500">The negotiation session is inactive.</p>
+                                        <p className="text-xs text-slate-400 mt-1">Send a message to start direct communication with the seller.</p>
                                     </div>
-                                ))
-                            )}
-                        </div>
+                                ) : (
+                                    messages.map((m, i) => (
+                                        <div key={i} className={`p-4 rounded-2xl text-sm max-w-[85%] shadow-sm ${m.sender === 'You' ? 'bg-teal-600 ml-auto text-white' : 'bg-white dark:bg-slate-900 mr-auto text-slate-800 dark:text-white border border-slate-100 dark:border-slate-800'}`}>
+                                            <div className={`text-[10px] font-black uppercase mb-1 tracking-widest opacity-70 ${m.sender === 'You' ? 'text-teal-50' : 'text-slate-400'}`}>{m.sender}</div>
+                                            <div className="font-medium leading-relaxed">{m.text}</div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
 
-                        <div className="flex gap-2 mb-4">
-                            <Input
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                placeholder="Offer a price..."
-                                className="bg-white h-9 text-sm"
-                            />
-                            <Button size="sm" onClick={handleSend} className="bg-slate-800 hover:bg-slate-900 text-white h-9">Send</Button>
-                        </div>
+                            <div className="flex gap-2 mb-6">
+                                <Input
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                                    placeholder="Enter your offer..."
+                                    className="bg-slate-50 dark:bg-slate-800 border-none h-12 rounded-xl focus-visible:ring-teal-500/20"
+                                />
+                                <Button onClick={handleSend} className="bg-slate-900 dark:bg-white dark:text-slate-900 text-white h-12 px-6 font-bold rounded-xl active:scale-95 transition-transform">Send</Button>
+                            </div>
 
-                        <div className="border-t border-slate-200 pt-4 mt-2">
-                            <Button
-                                onClick={() => setLocked(!locked)}
-                                className={`w-full h-10 font-bold transition-all shadow border flex items-center gap-2 justify-center ${locked ? 'bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
-                            >
-                                <Lock size={16} className={locked ? "text-teal-600" : "text-slate-400"} />
-                                {locked ? "Agreement Locked" : "Lock Agreement"}
-                            </Button>
-                            <p className="text-[10px] text-slate-500 mt-2 text-center leading-tight">
-                                Locking the agreement initiates the Swift Escrow Engine contract binding both parties.
-                            </p>
-                        </div>
-                    </Card>
+                            <div className="pt-6 border-t border-slate-50 dark:border-slate-800">
+                                <Button
+                                    onClick={() => setLocked(!locked)}
+                                    className={`w-full h-14 font-black transition-all rounded-2xl border flex items-center gap-3 justify-center text-sm shadow-sm ${locked ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-800' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <Lock size={18} className={locked ? "text-teal-500" : "text-slate-400"} />
+                                    {locked ? "AGREEMENT SECURED" : "LOCK AGREEMENT"}
+                                </Button>
+                                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-4 text-center leading-tight px-4">
+                                    Binding contract via Swift Escrow engine
+                                </p>
+                            </div>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,9 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Upload, DollarSign, BarChart, Wallet, ShieldCheck } from "lucide-react";
-import { useState } from "react";
-import { useApp } from "@/providers/AppProvider";
+import { CldUploadWidget } from 'next-cloudinary';
 
 export default function SellPage() {
     const { user, supabase } = useApp();
@@ -36,6 +34,11 @@ export default function SellPage() {
             return;
         }
 
+        if (!formData.image_url) {
+            alert("Please upload a product image first.");
+            return;
+        }
+
         setIsUploading(true);
         try {
             const { error } = await supabase.from('products').insert({
@@ -44,7 +47,7 @@ export default function SellPage() {
                 price: parseFloat(formData.price),
                 category: formData.category,
                 tag: formData.tag || null,
-                image_url: formData.image_url || "/products/headphones.png",
+                image_url: formData.image_url,
                 seller_id: user.id
             });
 
@@ -177,14 +180,39 @@ export default function SellPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Image URL (Optional)</label>
-                                <input
-                                    type="text"
-                                    placeholder="Leave blank for default placeholder"
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-transparent focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-teal-500/20 transition-all dark:text-white"
-                                    value={formData.image_url}
-                                    onChange={e => setFormData({ ...formData, image_url: e.target.value })}
-                                />
+                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Product Media</label>
+                                <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50 dark:bg-slate-800/30 transition-all">
+                                    {formData.image_url ? (
+                                        <div className="relative group overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+                                            <img src={formData.image_url} alt="Preview" className="max-h-48 object-contain" />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                <Button type="button" size="sm" variant="destructive" onClick={() => setFormData({ ...formData, image_url: "" })}>Remove</Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <CldUploadWidget
+                                            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+                                            onSuccess={(result: any) => {
+                                                if (result.info?.secure_url) {
+                                                    setFormData({ ...formData, image_url: result.info.secure_url });
+                                                }
+                                            }}
+                                        >
+                                            {({ open }) => (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => open()}
+                                                    className="flex flex-col items-center gap-3 text-slate-400 hover:text-teal-500 transition-colors"
+                                                >
+                                                    <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                                        <Upload size={28} />
+                                                    </div>
+                                                    <span className="text-sm font-medium">Click to upload product photo</span>
+                                                </button>
+                                            )}
+                                        </CldUploadWidget>
+                                    )}
+                                </div>
                             </div>
 
                             <Button
