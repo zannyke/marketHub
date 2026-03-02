@@ -135,6 +135,16 @@ export default function NewProductPage() {
                                         onError={(error: any) => {
                                             console.error("Cloudinary Error:", error);
                                             alert("Image upload failed. Please try again or check your internet connection.");
+                                            document.body.style.overflow = '';
+                                        }}
+                                        onSuccess={(result: any) => {
+                                            if (result.info?.secure_url) {
+                                                setImageUrl(result.info.secure_url);
+                                            }
+                                            document.body.style.overflow = '';
+                                        }}
+                                        onClose={() => {
+                                            document.body.style.overflow = '';
                                         }}
                                         options={{
                                             sources: ['local', 'camera', 'url'],
@@ -161,11 +171,6 @@ export default function NewProductPage() {
                                                     complete: "#20B832",
                                                     sourceBg: "#E4EBF1"
                                                 }
-                                            }
-                                        }}
-                                        onSuccess={(result: any) => {
-                                            if (result.info?.secure_url) {
-                                                setImageUrl(result.info.secure_url);
                                             }
                                         }}
                                     >
