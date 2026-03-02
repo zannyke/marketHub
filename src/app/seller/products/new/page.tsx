@@ -26,6 +26,7 @@ export default function NewProductPage() {
     const router = useRouter();
     const { user, supabase } = useApp();
     const [isLoading, setIsLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
     const [imageUrl, setImageUrl] = useState("");
     const [formData, setFormData] = useState({
         title: "",
@@ -63,12 +64,16 @@ export default function NewProductPage() {
 
             if (error) throw error;
 
-            alert("Product published successfully to MarketHub!");
-            router.push('/seller/products');
+            // Fast transition to products page instead of a blocking alert
+            router.prefetch('/seller/products');
+            setIsLoading(false);
+            setSuccess(true);
+            setTimeout(() => {
+                router.push('/seller/products');
+            }, 500);
         } catch (err: any) {
             console.error(err);
             alert(`Publication Error: ${err.message}`);
-        } finally {
             setIsLoading(false);
         }
     };
