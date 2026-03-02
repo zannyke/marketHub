@@ -140,6 +140,9 @@ export default function NewProductPage() {
                                             sources: ['local', 'camera', 'url'],
                                             multiple: false,
                                             cropping: true,
+                                            maxFileSize: 5242880, // 5MB max to save memory
+                                            maxImageWidth: 2000, // Prevent huge resolution memory spikes
+                                            maxImageHeight: 2000,
                                             showAdvancedOptions: false,
                                             defaultSource: 'local',
                                             styles: {
