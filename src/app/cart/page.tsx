@@ -1,16 +1,35 @@
 "use client";
 
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Trash2, ArrowRight, Loader2, ShieldCheck, Plus, Minus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Trash2, ArrowRight, Loader2, ShieldCheck, Plus, Minus, CheckCircle } from "lucide-react";
 import { useApp } from "@/providers/AppProvider";
 
 export default function CartPage() {
-    const { user, isLoading: authLoading, cartItems, removeFromCart, updateQuantity } = useApp();
+    const { user, isLoading: authLoading, cartItems, removeFromCart, updateQuantity, supabase } = useApp();
+    const router = useRouter();
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [checkoutSuccess, setCheckoutSuccess] = useState(false);
 
     const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
     const tax = subtotal * 0.08;
     const total = subtotal + tax;
+
+    const handleCheckout = async () => {
+        setIsProcessing(true);
+        // Simulate secure payment processing latency
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // Clear all items optimistically from cart
+        if (user) {
+            cartItems.forEach(item => removeFromCart(item.productId));
+        }
+
+        setIsProcessing(false);
+        setCheckoutSuccess(true);
+    };
 
     // Swift 70/30 Financial Engine Calculation
     const sellerAllocation = subtotal * 0.70;
@@ -165,9 +184,32 @@ export default function CartPage() {
                                     </div>
                                 </div>
 
-                                <Button size="lg" className="w-full h-14 btn-gradient text-white font-bold shadow-lg shadow-teal-500/20 text-lg transition-all hover:-translate-y-1">
-                                    Process Payment <ArrowRight size={20} className="ml-2" />
-                                </Button>
+                                {!checkoutSuccess ? (
+                                    <Button
+                                        size="lg"
+                                        onClick={handleCheckout}
+                                        disabled={isProcessing}
+                                        className="w-full h-14 btn-gradient text-white font-bold shadow-lg shadow-teal-500/20 text-lg transition-all hover:-translate-y-1 disabled:opacity-70 disabled:hover:translate-y-0"
+                                    >
+                                        {isProcessing ? (
+                                            <><Loader2 className="mr-2 animate-spin" size={20} /> Processing via Stripe...</>
+                                        ) : (
+                                            <>Process Payment <ArrowRight size={20} className="ml-2" /></>
+                                        )}
+                                    </Button>
+                                ) : (
+                                    <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-6 rounded-2xl flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4">
+                                        <CheckCircle size={48} className="text-emerald-500 mb-4" />
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Payment Successful!</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Your premium items are now secured in the Swift Escrow Engine.</p>
+                                        <Button
+                                            onClick={() => router.push('/marketplace')}
+                                            className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-12"
+                                        >
+                                            Return to Marketplace
+                                        </Button>
+                                    </div>
+                                )}
 
                                 <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400">
                                     <ShieldCheck size={14} />

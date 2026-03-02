@@ -33,7 +33,7 @@ export default function LoginPage() {
         // Helper to handle success
         const handleSuccess = () => {
             addLog("Login Success! Redirecting...");
-            window.location.href = "/?welcome=true";
+            router.push("/?welcome=true");
         };
 
         try {

@@ -70,13 +70,11 @@ export default function SignupPage() {
                 setError(error.message);
             } else if (data.session) {
                 // Determine redirect based on role
-                const redirectPath = role === 'seller' ? '/dashboard' : '/';
+                const redirectPath = role === 'seller' ? '/dashboard' : '/?welcome=true';
                 router.push(redirectPath);
-                router.refresh();
             } else {
                 // Email confirmation required
                 router.push("/auth/login?message=Account created successfully! Please check your email to confirm.");
-                router.refresh();
             }
         } catch (err: any) {
             console.error("Signup error:", err);
