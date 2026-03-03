@@ -42,16 +42,26 @@ export default function UnifiedAuthPage() {
 
         try {
             if (authType === 'email') {
-                const { error } = await supabase.auth.signInWithOtp({ email: authIdentifier });
+                const { error } = await supabase.auth.signInWithOtp({
+                    email: authIdentifier,
+                    options: { shouldCreateUser: false }
+                });
                 if (error) throw error;
             } else {
-                const { error } = await supabase.auth.signInWithOtp({ phone: authIdentifier });
+                const { error } = await supabase.auth.signInWithOtp({
+                    phone: authIdentifier,
+                    options: { shouldCreateUser: false }
+                });
                 if (error) throw error;
             }
             setStep('verify');
         } catch (err: any) {
             console.error("OTP send error:", err);
-            setError(err.message || `Failed to send verification code to ${authIdentifier}.`);
+            if (err.message?.includes('Signups not allowed for otp') || err.message?.includes('not found') || err.status === 400 || err.status === 422) {
+                setError(`The ${authType} you shared does not have an account in the system yet. Please create an account first.`);
+            } else {
+                setError(err.message || `Failed to send verification code to ${authIdentifier}.`);
+            }
         } finally {
             setLoading(false);
         }
