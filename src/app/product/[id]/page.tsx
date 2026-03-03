@@ -10,24 +10,66 @@ import { useApp } from "@/providers/AppProvider";
 
 export default function ProductPage({ params }: { params: { id: string } }) {
     const { addToCart, user, supabase } = useApp();
-    const [messages, setMessages] = useState<{ sender: string, text: string }[]>([]);
+    const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState("");
     const [locked, setLocked] = useState(false);
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchProduct = async () => {
+        let subscription: any;
+
+        const fetchProductAndMessages = async () => {
             setLoading(true);
             try {
-                const { data, error } = await supabase
+                // 1. Fetch Product
+                const { data: productData, error: productError } = await supabase
                     .from('products')
                     .select('*')
                     .eq('id', params.id)
                     .single();
 
-                if (error) throw error;
-                setProduct(data);
+                if (productError) throw productError;
+                setProduct(productData);
+
+                // 2. Realtime Chat Setup (if logged in)
+                if (user && productData) {
+                    // Get conversation history
+                    const { data: msgData, error: msgError } = await supabase
+                        .from('messages')
+                        .select('*')
+                        .eq('product_id', params.id)
+                        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${productData.seller_id}),and(sender_id.eq.${productData.seller_id},receiver_id.eq.${user.id})`)
+                        .order('created_at', { ascending: true });
+
+                    if (!msgError && msgData) {
+                        setMessages(msgData);
+                    }
+
+                    // Listen for new incoming messages live
+                    subscription = supabase
+                        .channel(`chat_${params.id}`)
+                        .on('postgres_changes', {
+                            event: 'INSERT',
+                            schema: 'public',
+                            table: 'messages',
+                            filter: `product_id=eq.${params.id}`
+                        }, (payload) => {
+                            const newMsg = payload.new;
+                            // Only append if it belongs to this conversation
+                            if (
+                                (newMsg.sender_id === user.id && newMsg.receiver_id === productData.seller_id) ||
+                                (newMsg.sender_id === productData.seller_id && newMsg.receiver_id === user.id)
+                            ) {
+                                setMessages(prev => {
+                                    // Prevent duplicate pushes
+                                    if (prev.some(m => m.id === newMsg.id)) return prev;
+                                    return [...prev, newMsg];
+                                });
+                            }
+                        })
+                        .subscribe();
+                }
             } catch (err) {
                 console.error("Error fetching product:", err);
             } finally {
@@ -35,16 +77,36 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             }
         };
 
-        if (params.id) fetchProduct();
-    }, [params.id, supabase]);
+        if (params.id) fetchProductAndMessages();
 
-    const handleSend = () => {
-        if (!input.trim()) return;
-        setMessages([...messages, { sender: 'You', text: input }]);
-        setInput("");
-        setTimeout(() => {
-            setMessages(prev => [...prev, { sender: 'Seller', text: 'I am available to negotiate. If we agree, use the Agreement Lock.' }]);
-        }, 1000);
+        return () => {
+            if (subscription) supabase.removeChannel(subscription);
+        };
+    }, [params.id, supabase, user]);
+
+    const handleSend = async () => {
+        if (!input.trim() || !user || !product) return;
+
+        if (user.id === product.seller_id) {
+            alert("You are the seller! Buyers must message you first.");
+            return;
+        }
+
+        const msgText = input.trim();
+        setInput(""); // Optimistically clear input
+
+        // Send to Supabase Database
+        const { error } = await supabase.from('messages').insert({
+            product_id: product.id,
+            sender_id: user.id,
+            receiver_id: product.seller_id,
+            text: msgText
+        });
+
+        if (error) {
+            console.error("Message send failed:", error);
+            alert("Failed to connect to chat server.");
+        }
     };
 
     if (loading) {
@@ -208,12 +270,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                                         <p className="text-xs text-slate-400 mt-1">Send a message to start direct communication with the seller.</p>
                                     </div>
                                 ) : (
-                                    messages.map((m, i) => (
-                                        <div key={i} className={`p-4 rounded-2xl text-sm max-w-[85%] shadow-sm ${m.sender === 'You' ? 'bg-teal-600 ml-auto text-white' : 'bg-white dark:bg-slate-900 mr-auto text-slate-800 dark:text-white border border-slate-100 dark:border-slate-800'}`}>
-                                            <div className={`text-[10px] font-black uppercase mb-1 tracking-widest opacity-70 ${m.sender === 'You' ? 'text-teal-50' : 'text-slate-400'}`}>{m.sender}</div>
-                                            <div className="font-medium leading-relaxed">{m.text}</div>
-                                        </div>
-                                    ))
+                                    messages.map((m, i) => {
+                                        const isYou = m.sender_id === user?.id;
+                                        return (
+                                            <div key={m.id || i} className={`p-4 rounded-2xl text-sm max-w-[85%] shadow-sm ${isYou ? 'bg-teal-600 ml-auto text-white' : 'bg-white dark:bg-slate-900 mr-auto text-slate-800 dark:text-white border border-slate-100 dark:border-slate-800'}`}>
+                                                <div className={`text-[10px] font-black uppercase mb-1 tracking-widest opacity-70 ${isYou ? 'text-teal-50' : 'text-slate-400'}`}>{isYou ? 'You' : 'Seller'}</div>
+                                                <div className="font-medium leading-relaxed">{m.text}</div>
+                                            </div>
+                                        );
+                                    })
                                 )}
                             </div>
 
