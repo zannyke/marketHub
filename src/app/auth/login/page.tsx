@@ -194,6 +194,9 @@ export default function UnifiedAuthPage() {
                                         name="otp"
                                         required
                                         placeholder="123456"
+                                        autoComplete="one-time-code"
+                                        inputMode="numeric"
+                                        maxLength={6}
                                         className="w-full h-11 pl-10 pr-3 rounded-md bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow font-mono tracking-widest text-lg"
                                     />
                                 </div>
