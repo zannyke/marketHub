@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, User, Github, ArrowRight, Briefcase, ShoppingBag, Truck } from "lucide-react";
+import { Mail, Lock, User, Github, ArrowRight, Briefcase, ShoppingBag, Truck, Phone } from "lucide-react";
 import { useApp } from "@/providers/AppProvider";
 
 export default function SignupPage() {
@@ -15,6 +15,13 @@ export default function SignupPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [role, setRole] = useState<'buyer' | 'seller' | 'delivery'>('buyer');
+
+    // Phone auth state
+    const [isPhoneSignup, setIsPhoneSignup] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
+    const [countryCode, setCountryCode] = useState("+1");
+    const [phone, setPhone] = useState("");
+
     const supabase = createClient();
 
     // Auto-redirect if user becomes authenticated
@@ -30,61 +37,78 @@ export default function SignupPage() {
         setError(null);
 
         const formData = new FormData(e.currentTarget);
-        const email = formData.get("email") as string;
-        const password = formData.get("password") as string;
-        const confirmPassword = formData.get("confirmPassword") as string;
         const fullName = formData.get("fullName") as string;
 
-        if (password !== confirmPassword) {
-            setError("Passwords do not match");
-            setLoading(false);
-            return;
-        }
-
+        // Form Data common to specific roles
         const plateNumber = formData.get("plateNumber") as string;
         const vehicleClass = formData.get("vehicleClass") as string;
         const energyProfile = formData.get("energyProfile") as string;
         const nationalId = formData.get("nationalId") as string;
 
-        try {
-            const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
-                options: {
-                    data: {
-                        full_name: fullName,
-                        role: role,
-                        ...(role === 'delivery' && {
-                            plate_number: plateNumber,
-                            vehicle_class: vehicleClass,
-                            energy_profile: energyProfile
-                        }),
-                        ...(role === 'seller' && {
-                            national_id: nationalId
-                        })
-                    },
-                },
-            });
+        const metadata = {
+            full_name: fullName,
+            role: role,
+            ...(role === 'delivery' && { plate_number: plateNumber, vehicle_class: vehicleClass, energy_profile: energyProfile }),
+            ...(role === 'seller' && { national_id: nationalId })
+        };
 
-            if (error) {
-                setError(error.message);
-            } else if (data.session) {
-                // Determine redirect based on role
-                const redirectPath = role === 'seller' ? '/dashboard' : '/?welcome=true';
-                router.push(redirectPath);
+        try {
+            if (isPhoneSignup) {
+                const fullPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
+
+                if (!otpSent) {
+                    // 1. Send OTP to Phone
+                    const { error } = await supabase.auth.signInWithOtp({
+                        phone: fullPhone,
+                        options: { data: metadata }
+                    });
+                    if (error) throw error;
+                    setOtpSent(true);
+                } else {
+                    // 2. Verify OTP for Phone
+                    const otp = formData.get("otp") as string;
+                    const { data, error } = await supabase.auth.verifyOtp({
+                        phone: fullPhone,
+                        token: otp,
+                        type: 'sms'
+                    });
+                    if (error) throw error;
+                    if (data?.session) {
+                        router.push(role === 'seller' ? '/dashboard' : '/?welcome=true');
+                    }
+                }
             } else {
-                // Email confirmation required
-                router.push("/auth/login?message=Account created successfully! Please check your email to confirm.");
+                // Email + Password Flow
+                const email = formData.get("email") as string;
+                const password = formData.get("password") as string;
+                const confirmPassword = formData.get("confirmPassword") as string;
+
+                if (password !== confirmPassword) {
+                    setError("Passwords do not match");
+                    setLoading(false);
+                    return;
+                }
+
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: { data: metadata },
+                });
+
+                if (error) throw error;
+
+                if (data.session) {
+                    router.push(role === 'seller' ? '/dashboard' : '/?welcome=true');
+                } else {
+                    router.push("/auth/login?message=Account created! Please check your email to confirm.");
+                }
             }
         } catch (err: any) {
             console.error("Signup error:", err);
-
-            // Handle "User already registered" explicitly
             if (err.message?.includes("already registered") || err.message?.includes("already exists")) {
                 router.push("/auth/login?message=Account already exists. Please sign in.");
                 return;
             }
-
             setError(err.message || "An unexpected error occurred");
         } finally {
             if (!user) setLoading(false);
@@ -185,48 +209,99 @@ export default function SignupPage() {
                                 name="fullName"
                                 type="text"
                                 required
+                                disabled={otpSent}
                                 icon={<User size={18} />}
                                 placeholder="John Doe"
                                 className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <Input
-                                label="Email"
-                                name="email"
-                                type="email"
-                                required
-                                icon={<Mail size={18} />}
-                                placeholder="name@example.com"
-                                className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
-                            />
-                        </div>
+                        {/* Dynamic Identity Inputs based on Mode */}
+                        {!isPhoneSignup ? (
+                            <>
+                                <div className="space-y-2">
+                                    <Input
+                                        label="Email"
+                                        name="email"
+                                        type="email"
+                                        required
+                                        icon={<Mail size={18} />}
+                                        placeholder="name@example.com"
+                                        className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Input
+                                            label="Password"
+                                            name="password"
+                                            type="password"
+                                            required
+                                            icon={<Lock size={18} />}
+                                            placeholder="••••••••"
+                                            className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Input
+                                            label="Confirm"
+                                            name="confirmPassword"
+                                            type="password"
+                                            required
+                                            icon={<Lock size={18} />}
+                                            placeholder="••••••••"
+                                            className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <label className="text-sm font-semibold text-slate-700">Phone Number (Global)</label>
+                                <div className="flex gap-2 mb-4">
+                                    <select
+                                        value={countryCode}
+                                        onChange={(e) => setCountryCode(e.target.value)}
+                                        disabled={otpSent}
+                                        className="h-11 w-24 rounded-md border border-slate-200 bg-slate-50 px-2 py-2 text-sm focus-visible:ring-teal-500"
+                                    >
+                                        <option value="+1">+1 (US/CA)</option>
+                                        <option value="+44">+44 (UK)</option>
+                                        <option value="+61">+61 (AU)</option>
+                                        <option value="+91">+91 (IN)</option>
+                                        <option value="+254">+254 (KE)</option>
+                                        <option value="+234">+234 (NG)</option>
+                                        <option value="+27">+27 (ZA)</option>
+                                    </select>
+                                    <Input
+                                        name="phone"
+                                        type="tel"
+                                        required
+                                        disabled={otpSent}
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        icon={<Phone size={18} />}
+                                        placeholder="555-0123"
+                                        className="h-11 flex-1 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                                    />
+                                </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Input
-                                    label="Password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    icon={<Lock size={18} />}
-                                    placeholder="••••••••"
-                                    className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Input
-                                    label="Confirm"
-                                    name="confirmPassword"
-                                    type="password"
-                                    required
-                                    icon={<Lock size={18} />}
-                                    placeholder="••••••••"
-                                    className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
-                                />
-                            </div>
-                        </div>
+                                {otpSent && (
+                                    <div className="space-y-2 mt-4 animate-in fade-in slide-in-from-top-2 p-4 bg-teal-50 border border-teal-100 rounded-xl">
+                                        <label className="text-sm font-bold text-teal-900">SMS Verification Code</label>
+                                        <Input
+                                            name="otp"
+                                            type="text"
+                                            required
+                                            icon={<Lock size={18} />}
+                                            placeholder="000000"
+                                            className="h-11 bg-white border-teal-200 focus-visible:ring-teal-500 text-center tracking-widest font-bold text-lg"
+                                        />
+                                        <p className="text-xs text-teal-700 font-medium">Please enter the 6-digit code sent to your phone.</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
 
                         {role === 'delivery' && (
                             <div className="space-y-4 pt-4 border-t border-slate-100">
@@ -265,10 +340,18 @@ export default function SignupPage() {
                         )}
 
                         <Button type="submit" size="lg" disabled={loading} className="w-full btn-gradient shadow text-white font-bold h-11">
-                            {loading ? "Creating..." : "Create Account"}
+                            {loading ? "Processing..." : (isPhoneSignup ? (otpSent ? "Verify & Create Account" : "Send SMS Code") : "Create Account")}
                             {!loading && <ArrowRight size={18} className="ml-2" />}
                         </Button>
                     </form>
+
+                    <button
+                        type="button"
+                        onClick={() => { setIsPhoneSignup(!isPhoneSignup); setOtpSent(false); setError(null); }}
+                        className="w-full text-center text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors uppercase pt-2"
+                    >
+                        {isPhoneSignup ? "Use Standard Email Setup" : "Use Global Phone Number"}
+                    </button>
 
                     <div className="relative">
                         <div className="absolute inset-0 flex items-center">
@@ -291,6 +374,6 @@ export default function SignupPage() {
                     </p>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
