@@ -18,6 +18,7 @@ export function BuyerHome() {
                 const { data, error } = await supabase
                     .from('products')
                     .select('*')
+                    .gt('stock_quantity', 0)
                     .limit(4)
                     .order('created_at', { ascending: false });
 

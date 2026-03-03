@@ -22,9 +22,21 @@ export default function CartPage() {
         // Simulate secure payment processing latency
         await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // Clear all items optimistically from cart
-        if (user) {
-            cartItems.forEach(item => removeFromCart(item.productId));
+        if (user && cartItems.length > 0) {
+            try {
+                // Deduct stock from database for all checked out items
+                for (const item of cartItems) {
+                    const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', item.productId).single();
+                    if (product) {
+                        const newStock = Math.max(0, (product.stock_quantity || 1) - item.quantity);
+                        await supabase.from('products').update({ stock_quantity: newStock }).eq('id', item.productId);
+                    }
+                    // Clear all items optimistically from cart
+                    removeFromCart(item.productId);
+                }
+            } catch (err) {
+                console.error("Checkout processing error:", err);
+            }
         }
 
         setIsProcessing(false);

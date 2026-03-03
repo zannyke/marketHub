@@ -127,7 +127,8 @@ export default function NewProductPage() {
                 category: formData.category,
                 tag: formData.condition,
                 image_url: imageUrl,
-                seller_id: user.id
+                seller_id: user.id,
+                stock_quantity: parseInt(formData.quantity) || 1
             }).then(({ error }) => {
                 if (error) console.error("Background sync error:", error);
             });
