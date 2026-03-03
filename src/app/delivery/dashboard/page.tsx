@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Package, MapPin, Navigation, Clock, CheckCircle, ChevronRight, DollarSign, Calendar, Truck } from "lucide-react";
