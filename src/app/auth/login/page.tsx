@@ -63,12 +63,22 @@ export default function UnifiedAuthPage() {
         setError(null);
 
         const formData = new FormData(e.currentTarget);
-        const token = formData.get("otp") as string;
+        const token = (formData.get("otp") as string).trim();
 
         try {
             let res;
             if (authType === 'email') {
+                // By default try verifying it as a magiclink/email login token
                 res = await supabase.auth.verifyOtp({ email: authIdentifier, token, type: 'email' });
+
+                // If the user's account was just created, Supabase sends a "signup" token instead.
+                // Fallback to verifying it as a signup token if the first attempt returns an invalid error.
+                if (res.error && (res.error.message.includes("expired or is invalid") || res.error.message.includes("Token"))) {
+                    const fallbackRes = await supabase.auth.verifyOtp({ email: authIdentifier, token, type: 'signup' });
+                    if (!fallbackRes.error) {
+                        res = fallbackRes;
+                    }
+                }
             } else {
                 res = await supabase.auth.verifyOtp({ phone: authIdentifier, token, type: 'sms' });
             }
