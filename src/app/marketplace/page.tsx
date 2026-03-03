@@ -120,19 +120,7 @@ function MarketplaceContent() {
 
     React.useEffect(() => {
         const fetchProducts = async () => {
-            const cacheKey = `market-hub-products-${category || 'all'}`;
-            const cachedData = sessionStorage.getItem(cacheKey);
-
-            if (cachedData) {
-                try {
-                    setProducts(JSON.parse(cachedData));
-                    setLoading(false); // Instantly remove loading screen for returning buyers
-                } catch (e) {
-                    // Invalid cache, continue as normal
-                }
-            } else {
-                setLoading(true); // Only show loading spinner on the absolute first visit
-            }
+            setLoading(true);
 
             try {
                 // Only show products
@@ -156,9 +144,6 @@ function MarketplaceContent() {
 
                 const freshProducts = data || [];
                 setProducts(freshProducts);
-
-                // Cache the fresh data in the background
-                sessionStorage.setItem(cacheKey, JSON.stringify(freshProducts));
             } catch (err) {
                 console.error("Error fetching products:", err);
             } finally {

@@ -177,14 +177,14 @@ export function BuyerHome() {
                     {isLoading ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                             {[1, 2, 3, 4].map(i => (
-                                <div key={i} className="bg-slate-50 dark:bg-slate-800 h-[400px] animate-pulse rounded-3xl" />
+                                <div key={i} className="bg-slate-50 dark:bg-slate-800 aspect-[3/4] sm:aspect-auto sm:h-[400px] animate-pulse rounded-3xl" />
                             ))}
                         </div>
                     ) : featuredProducts.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                             {featuredProducts.map((item, i) => (
-                                <div key={item.id} className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all duration-300 group">
-                                    <div className="h-[300px] bg-slate-50 dark:bg-slate-800/50 relative p-8 flex items-center justify-center overflow-hidden">
+                                <div key={item.id} className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all duration-300 group flex flex-col">
+                                    <div className="aspect-[4/3] sm:aspect-auto sm:h-[300px] bg-slate-50 dark:bg-slate-800/50 relative p-8 flex items-center justify-center overflow-hidden w-full">
                                         {item.tag && (
                                             <span className={`absolute top-5 right-5 ${item.tag_color || 'bg-teal-500'} text-white text-[10px] font-bold px-3 py-1.5 rounded-full z-10 shadow-lg uppercase`}>
                                                 {item.tag}
