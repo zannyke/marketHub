@@ -141,13 +141,26 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-slate-500 dark:text-slate-400 font-medium">Fixed price. Negotiable via chat below.</p>
+                                <p className="text-slate-500 dark:text-slate-400 font-medium mb-4">Fixed price. Negotiable via chat below.</p>
+
+                                {product.stock_quantity > 0 ? (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-bold border border-emerald-200 dark:border-emerald-800">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        {product.stock_quantity} unit{product.stock_quantity === 1 ? '' : 's'} available
+                                    </div>
+                                ) : (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-full text-sm font-bold border border-red-200 dark:border-red-800">
+                                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                        Out of stock
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-4">
                                 <Button
                                     size="lg"
-                                    className="w-full h-16 bg-teal-600 hover:bg-teal-700 text-white font-bold text-lg rounded-2xl shadow-lg shadow-teal-500/20 transform active:scale-95 transition-all"
+                                    disabled={product.stock_quantity <= 0}
+                                    className="w-full h-16 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:bg-slate-400 text-white font-bold text-lg rounded-2xl shadow-lg shadow-teal-500/20 transform active:scale-95 transition-all"
                                     onClick={() => addToCart({
                                         id: product.id,
                                         productId: product.id,
@@ -158,7 +171,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                                         quantity: 1
                                     })}
                                 >
-                                    Add to Cart
+                                    {product.stock_quantity > 0 ? "Add to Cart" : "Item Unavailable"}
                                 </Button>
                                 <Button variant="outline" className="w-full h-14 border-2 border-slate-100 dark:border-slate-800 font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                     View Live Demo
