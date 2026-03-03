@@ -131,11 +131,11 @@ function MarketplaceContent() {
                     if (target === 'trending') {
                         query = query.eq('tag', 'Hot');
                     } else if (target === 'gadgets') {
-                        query = query.ilike('category', 'electronics');
+                        query = query.ilike('category', '%electronics%');
                     } else if (target === 'home') {
                         query = query.ilike('category', '%home%');
                     } else {
-                        query = query.ilike('category', category);
+                        query = query.ilike('category', `%${target}%`);
                     }
                 }
 
@@ -177,6 +177,37 @@ function MarketplaceContent() {
                     <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="hidden sm:flex border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">Filters</Button>
                         <Button variant="outline" size="sm" className="hidden sm:flex border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">Sort: Popular</Button>
+                    </div>
+                </div>
+
+                {/* Categories Tabs */}
+                <div className="container mx-auto mt-3 overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="flex gap-2 min-w-max">
+                        <Link href="/marketplace">
+                            <span className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${!category ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                All
+                            </span>
+                        </Link>
+                        <Link href="/marketplace?cat=electronics">
+                            <span className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${category === 'electronics' ? 'bg-teal-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                Electronics
+                            </span>
+                        </Link>
+                        <Link href="/marketplace?cat=fashion">
+                            <span className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${category === 'fashion' ? 'bg-rose-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                Fashion
+                            </span>
+                        </Link>
+                        <Link href="/marketplace?cat=home">
+                            <span className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${category === 'home' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                Home & Living
+                            </span>
+                        </Link>
+                        <Link href="/marketplace?cat=trending">
+                            <span className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${category === 'trending' ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                Hot 🔥
+                            </span>
+                        </Link>
                     </div>
                 </div>
             </div>
