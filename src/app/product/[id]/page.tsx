@@ -175,9 +175,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             {product.title}
                         </h1>
 
-                        <p className="text-lg text-slate-500 dark:text-slate-400 mb-10 leading-relaxed max-w-2xl">
-                            {product.description || "No description provided for this premium item. Verified by Identity Shield and protected by Swift Escrow Engine."}
-                        </p>
+                        <div
+                            className="text-lg text-slate-500 dark:text-slate-400 mb-10 leading-relaxed max-w-2xl"
+                            dangerouslySetInnerHTML={{ __html: product.description || "No description provided for this premium item. Verified by Identity Shield and protected by Swift Escrow engine." }}
+                        />
 
                         <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-3xl shadow-sm mb-12">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
@@ -259,125 +260,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             </div>
                         </Card>
 
-                        {/* Seller/Shop Details Card */}
-                        {sellerProfile && (
-                            <Card className="p-8 bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm rounded-[32px]">
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                                    <Store size={20} className="text-teal-500" />
-                                    {sellerProfile.shop_name || "Independent Seller"}
-                                </h3>
 
-                                <div className="space-y-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center shrink-0 text-teal-600 dark:text-teal-400 font-bold">
-                                            {sellerProfile.full_name?.[0]?.toUpperCase() || 'S'}
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-slate-900 dark:text-white">{sellerProfile.full_name}</p>
-                                            <p className="text-xs text-slate-500">Identity Verified</p>
-                                        </div>
-                                    </div>
-
-                                    {sellerProfile.shop_description && (
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic border-l-2 border-teal-200 dark:border-teal-800 pl-3">
-                                            "{sellerProfile.shop_description}"
-                                        </p>
-                                    )}
-
-                                    <div className="pt-4 border-t border-slate-50 dark:border-slate-800/50 space-y-2">
-                                        {(sellerProfile.shop_location || sellerProfile.location) && (
-                                            <div className="flex items-center gap-2 text-sm text-slate-500">
-                                                <MapPin size={14} className="text-slate-400" />
-                                                {sellerProfile.shop_location || sellerProfile.location}
-                                            </div>
-                                        )}
-                                        {sellerProfile.shop_hours && (
-                                            <div className="flex items-center gap-2 text-sm text-slate-500">
-                                                <Clock size={14} className="text-slate-400" />
-                                                {sellerProfile.shop_hours}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </Card>
-                        )}
-
-                        {/* Negotiation Center */}
-                        <Card className="p-8 bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-lg rounded-[32px] overflow-hidden">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                    <MessageSquare size={20} className="text-slate-600 dark:text-slate-400" />
-                                </div>
-                                <h3 className="font-bold text-xl text-slate-900 dark:text-white uppercase tracking-tight">Negotiation Center</h3>
-                            </div>
-
-                            {cartItems.some(i => i.productId === product.id) ? (
-                                <>
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 h-60 overflow-y-auto mb-6 flex flex-col gap-3 scrollbar-hide">
-                                        {messages.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center h-full opacity-40 text-center px-4">
-                                                <p className="text-sm font-medium text-slate-500">The negotiation session is inactive.</p>
-                                                <p className="text-xs text-slate-400 mt-1">Send a message to start direct communication with the seller.</p>
-                                            </div>
-                                        ) : (
-                                            messages.map((m, i) => {
-                                                const isYou = m.sender_id === user?.id;
-                                                return (
-                                                    <div key={m.id || i} className={`p-4 rounded-2xl text-sm max-w-[85%] shadow-sm ${isYou ? 'bg-teal-600 ml-auto text-white' : 'bg-white dark:bg-slate-900 mr-auto text-slate-800 dark:text-white border border-slate-100 dark:border-slate-800'}`}>
-                                                        <div className={`text-[10px] font-black uppercase mb-1 tracking-widest opacity-70 ${isYou ? 'text-teal-50' : 'text-slate-400'}`}>{isYou ? 'You' : 'Seller'}</div>
-                                                        <div className="font-medium leading-relaxed">{m.text}</div>
-                                                    </div>
-                                                );
-                                            })
-                                        )}
-                                    </div>
-
-                                    <div className="flex gap-2 mb-6">
-                                        <Input
-                                            value={input}
-                                            onChange={(e) => setInput(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                            placeholder="Enter your offer..."
-                                            className="bg-slate-50 dark:bg-slate-800 border-none h-12 rounded-xl focus-visible:ring-teal-500/20"
-                                        />
-                                        <Button onClick={handleSend} className="bg-slate-900 dark:bg-white dark:text-slate-900 text-white h-12 px-6 font-bold rounded-xl active:scale-95 transition-transform">Send</Button>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-2xl text-center border-2 border-dashed border-slate-200 dark:border-slate-700 mb-6 flex flex-col items-center justify-center">
-                                    <Lock className="text-slate-400 mb-4" size={32} />
-                                    <h4 className="font-bold text-slate-900 dark:text-white mb-2">Chat Locked</h4>
-                                    <p className="text-sm text-slate-500 mb-6 font-medium">Add this item to your cart to unlock direct seller communication.</p>
-                                    <Button
-                                        onClick={() => addToCart({
-                                            id: product.id,
-                                            productId: product.id,
-                                            title: product.title,
-                                            price: product.price,
-                                            image_url: product.image_url,
-                                            category: product.category,
-                                            quantity: 1
-                                        })}
-                                        className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-full px-8 shadow-md hover:shadow-lg transition-all"
-                                    >
-                                        Add to Cart to Unlock Chat
-                                    </Button>
-                                </div>
-                            )}
-
-                            <div className="pt-6 border-t border-slate-50 dark:border-slate-800">
-                                <Button
-                                    onClick={() => setLocked(!locked)}
-                                    className={`w-full h-14 font-black transition-all rounded-2xl border flex items-center gap-3 justify-center text-sm shadow-sm ${locked ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-800' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                                >
-                                    <Lock size={18} className={locked ? "text-teal-500" : "text-slate-400"} />
-                                    {locked ? "AGREEMENT SECURED" : "LOCK AGREEMENT"}
-                                </Button>
-                                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-4 text-center leading-tight px-4">
-                                    Binding contract via Swift Escrow engine
-                                </p>
-                            </div>
-                        </Card>
                     </div>
                 </div>
             </div>
