@@ -193,14 +193,6 @@ export default function UnifiedAuthPage() {
                         </form>
                     ) : (
                         <form onSubmit={handleVerifyOTP} className="space-y-5 animate-in slide-in-from-right-4 fade-in">
-                            <div className="bg-teal-50 border border-teal-100 p-4 rounded-lg flex gap-3 text-sm text-teal-800 mb-6">
-                                <ShieldCheck size={20} className="shrink-0 text-teal-600" />
-                                <div>
-                                    <p className="font-bold">Verification step required.</p>
-                                    <p className="text-teal-600 mt-1">We sent a 6-digit code to {authIdentifier}.</p>
-                                </div>
-                            </div>
-
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Verification Code</label>
                                 <div className="relative">
