@@ -42,26 +42,16 @@ export default function UnifiedAuthPage() {
 
         try {
             if (authType === 'email') {
-                const { error } = await supabase.auth.signInWithOtp({
-                    email: authIdentifier,
-                    options: { shouldCreateUser: false }
-                });
+                const { error } = await supabase.auth.signInWithOtp({ email: authIdentifier });
                 if (error) throw error;
             } else {
-                const { error } = await supabase.auth.signInWithOtp({
-                    phone: authIdentifier,
-                    options: { shouldCreateUser: false }
-                });
+                const { error } = await supabase.auth.signInWithOtp({ phone: authIdentifier });
                 if (error) throw error;
             }
             setStep('verify');
         } catch (err: any) {
             console.error("OTP send error:", err);
-            if (err.message?.includes('Signups not allowed for otp') || err.message?.includes('not found') || err.status === 400 || err.status === 422) {
-                setError(`The ${authType} you shared does not have an account in the system yet. Please create an account first.`);
-            } else {
-                setError(err.message || `Failed to send verification code to ${authIdentifier}.`);
-            }
+            setError(err.message || `Failed to send verification code to ${authIdentifier}.`);
         } finally {
             setLoading(false);
         }
@@ -147,9 +137,9 @@ export default function UnifiedAuthPage() {
             <div className="flex items-center justify-center bg-white p-8 lg:p-12">
                 <div className="w-full max-w-md space-y-8">
                     <div className="text-center lg:text-left">
-                        <h1 className="text-3xl font-bold text-slate-900">{step === 'input' ? 'Sign In' : 'Confirm Authentication'}</h1>
+                        <h1 className="text-3xl font-bold text-slate-900">{step === 'input' ? 'Sign In / Sign Up' : 'Confirm Authentication'}</h1>
                         {step === 'input' ? (
-                            <p className="text-slate-500 mt-2">Enter your email or phone number to securely access your account.</p>
+                            <p className="text-slate-500 mt-2">Enter your email or phone number to continue.</p>
                         ) : (
                             <div className="text-slate-500 mt-2 flex items-center justify-center lg:justify-start gap-2">
                                 <span>Sent to <span className="font-semibold text-slate-800">{authIdentifier}</span></span>
