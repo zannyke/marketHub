@@ -147,9 +147,9 @@ export default function UnifiedAuthPage() {
             <div className="flex items-center justify-center bg-white p-8 lg:p-12">
                 <div className="w-full max-w-md space-y-8">
                     <div className="text-center lg:text-left">
-                        <h1 className="text-3xl font-bold text-slate-900">{step === 'input' ? 'Sign In / Sign Up' : 'Confirm Authentication'}</h1>
+                        <h1 className="text-3xl font-bold text-slate-900">{step === 'input' ? 'Sign In' : 'Confirm Authentication'}</h1>
                         {step === 'input' ? (
-                            <p className="text-slate-500 mt-2">Enter your email or phone number to continue.</p>
+                            <p className="text-slate-500 mt-2">Enter your email or phone number to securely access your account.</p>
                         ) : (
                             <div className="text-slate-500 mt-2 flex items-center justify-center lg:justify-start gap-2">
                                 <span>Sent to <span className="font-semibold text-slate-800">{authIdentifier}</span></span>
