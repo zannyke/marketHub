@@ -31,9 +31,19 @@ export default function LoginPage() {
         const password = formData.get("password") as string;
 
         // Helper to handle success
-        const handleSuccess = () => {
+        const handleSuccess = (user: any) => {
             addLog("Login Success! Redirecting...");
-            router.push("/?welcome=true");
+
+            let redirectPath = "/?welcome=true";
+            const role = user?.user_metadata?.role;
+
+            if (role === 'seller') {
+                redirectPath = "/dashboard";
+            } else if (role === 'delivery') {
+                redirectPath = "/delivery/dashboard";
+            }
+
+            router.push(redirectPath);
         };
 
         try {
@@ -49,7 +59,7 @@ export default function LoginPage() {
                     addLog("Verifying Identity Shield OTP...");
                     const { data, error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
                     if (error) throw error;
-                    if (data?.session) handleSuccess();
+                    if (data?.session && data.user) handleSuccess(data.user);
                 }
                 setLoading(false);
                 return;
@@ -61,8 +71,8 @@ export default function LoginPage() {
                 throw error;
             }
 
-            if (data?.session) {
-                handleSuccess();
+            if (data?.session && data.user) {
+                handleSuccess(data.user);
             }
         } catch (err: any) {
             console.error("Login error:", err);
