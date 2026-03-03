@@ -14,7 +14,7 @@ WITH duplicate_names AS (
   WHERE full_name IS NOT NULL
 )
 UPDATE public.profiles
-SET full_name = full_name || ' (' || duplicate_names.row_num || ')'
+SET full_name = public.profiles.full_name || ' (' || duplicate_names.row_num || ')'
 FROM duplicate_names
 WHERE public.profiles.id = duplicate_names.id AND duplicate_names.row_num > 1;
 
