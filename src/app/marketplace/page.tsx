@@ -135,8 +135,8 @@ function MarketplaceContent() {
             }
 
             try {
-                // Only show products where stock is greater than 0
-                let query = supabase.from('products').select('*').gt('stock_quantity', 0);
+                // Only show products
+                let query = supabase.from('products').select('*');
 
                 if (category) {
                     const target = category.toLowerCase();
