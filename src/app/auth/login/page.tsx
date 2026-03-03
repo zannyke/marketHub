@@ -190,6 +190,7 @@ export default function UnifiedAuthPage() {
                                         <Asterisk size={18} className="text-slate-400" />
                                     </div>
                                     <input
+                                        key="otp-input"
                                         type="text"
                                         name="otp"
                                         required
