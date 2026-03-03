@@ -4,14 +4,17 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2, ArrowRight, Loader2, ShieldCheck, Plus, Minus, CheckCircle } from "lucide-react";
+import { Trash2, ArrowRight, Loader2, ShieldCheck, Plus, Minus, CheckCircle, MapPin } from "lucide-react";
 import { useApp } from "@/providers/AppProvider";
+
+import { Input } from "@/components/ui/input";
 
 export default function CartPage() {
     const { user, isLoading: authLoading, cartItems, removeFromCart, updateQuantity, supabase } = useApp();
     const router = useRouter();
     const [isProcessing, setIsProcessing] = useState(false);
     const [checkoutSuccess, setCheckoutSuccess] = useState(false);
+    const [deliveryAddress, setDeliveryAddress] = useState("");
 
     const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
     const tax = subtotal * 0.08;
@@ -23,11 +26,27 @@ export default function CartPage() {
         await new Promise(resolve => setTimeout(resolve, 1500));
 
         if (user && cartItems.length > 0) {
+            if (!deliveryAddress.trim()) {
+                alert("Please provide a delivery address.");
+                setIsProcessing(false);
+                return;
+            }
+
             try {
-                // Deduct stock from database for all checked out items
+                // Deduct stock from database for all checked out items and trigger orders
                 for (const item of cartItems) {
-                    const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', item.productId).single();
+                    const { data: product } = await supabase.from('products').select('stock_quantity, seller_id').eq('id', item.productId).single();
                     if (product) {
+                        // Create the Order Record for Delivery Drivers
+                        await supabase.from('orders').insert({
+                            buyer_id: user.id,
+                            seller_id: product.seller_id,
+                            product_id: item.productId,
+                            quantity: item.quantity,
+                            total_price: (item.price || 0) * item.quantity,
+                            delivery_address: deliveryAddress
+                        });
+
                         const newStock = Math.max(0, (product.stock_quantity || 1) - item.quantity);
                         await supabase.from('products').update({ stock_quantity: newStock }).eq('id', item.productId);
                     }
@@ -190,6 +209,18 @@ export default function CartPage() {
                                 </div>
 
                                 <div className="border-t border-slate-100 dark:border-slate-800 pt-6 mb-8">
+                                    <div className="space-y-4 mb-6">
+                                        <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                                            <MapPin size={16} className="text-teal-500" /> Delivery Details
+                                        </h4>
+                                        <Input
+                                            placeholder="Enter full delivery address..."
+                                            value={deliveryAddress}
+                                            onChange={(e) => setDeliveryAddress(e.target.value)}
+                                            className="bg-slate-50 dark:bg-slate-800"
+                                        />
+                                    </div>
+
                                     <div className="flex justify-between items-end">
                                         <span className="text-slate-600 dark:text-slate-400 font-medium">Total</span>
                                         <span className="text-3xl font-black text-slate-900 dark:text-white">${total.toFixed(2)}</span>
@@ -200,7 +231,7 @@ export default function CartPage() {
                                     <Button
                                         size="lg"
                                         onClick={handleCheckout}
-                                        disabled={isProcessing}
+                                        disabled={isProcessing || !deliveryAddress.trim()}
                                         className="w-full h-14 btn-gradient text-white font-bold shadow-lg shadow-teal-500/20 text-lg transition-all hover:-translate-y-1 disabled:opacity-70 disabled:hover:translate-y-0"
                                     >
                                         {isProcessing ? (

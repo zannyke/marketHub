@@ -33,7 +33,7 @@ interface Message {
 }
 
 interface Chat {
-    id: string;
+    id: string; // this will act as the conversation/product ID
     name: string;
     role: string;
     lastMessage: string;
@@ -42,45 +42,126 @@ interface Chat {
     online: boolean;
     avatar: string;
     type: 'order' | 'payment' | 'delivery';
+    productId: string;
+    otherUserId: string;
 }
 
 export default function ChatCenter() {
-    const { user, role } = useApp();
+    const { user, role, supabase } = useApp();
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [messageInput, setMessageInput] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
-
-    // Initialized as empty - No mock data as requested
     const [chats, setChats] = useState<Chat[]>([]);
+    const [allRawMessages, setAllRawMessages] = useState<any[]>([]);
 
     useEffect(() => {
-        // In a real app, this is where we'd fetch actual user chats from Supabase
-        // fetchUserChats();
-    }, [user]);
+        if (!user) return;
 
-    useEffect(() => {
-        if (selectedChat) {
-            // Mock messages removed, would fetch actual history here
-            setMessages([]);
+        let subscription: any;
+
+        const fetchUserChats = async () => {
+            try {
+                // Fetch all messages involving the user
+                const { data, error } = await supabase
+                    .from('messages')
+                    .select('*, products(id, title, image_url)')
+                    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                if (data) {
+                    setAllRawMessages(data);
+
+                    // Group by product
+                    const uniqueMap = new Map();
+                    data.forEach(msg => {
+                        if (msg.product_id && msg.products && !uniqueMap.has(msg.product_id)) {
+                            const otherUserId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
+                            uniqueMap.set(msg.product_id, {
+                                id: msg.product_id,
+                                productId: msg.product_id,
+                                name: msg.products.title || 'Product Inquiry',
+                                role: 'Negotiation',
+                                lastMessage: msg.text,
+                                time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                                unread: 0,
+                                online: true,
+                                avatar: msg.products.title?.[0]?.toUpperCase() || 'P',
+                                type: 'order',
+                                otherUserId: otherUserId
+                            });
+                        }
+                    });
+                    setChats(Array.from(uniqueMap.values()));
+                }
+            } catch (err) {
+                console.error("Error fetching chats:", err);
+            }
+        };
+
+        fetchUserChats();
+
+        // Listen for new incoming messages live
+        subscription = supabase
+            .channel('chat_inbox')
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'messages',
+            }, (payload) => {
+                const newMsg = payload.new;
+                if (newMsg.sender_id === user.id || newMsg.receiver_id === user.id) {
+                    fetchUserChats(); // Refresh the list
+                }
+            })
+            .subscribe();
+
+        return () => {
+            if (subscription) supabase.removeChannel(subscription);
         }
-    }, [selectedChat, user]);
+    }, [user, supabase]);
+
+    useEffect(() => {
+        if (selectedChat && allRawMessages.length > 0) {
+            // Filter messages for this specific product conversation and reverse to chronological order
+            const filteredMsgs = allRawMessages
+                .filter(m => m.product_id === selectedChat.productId)
+                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                .map(m => ({
+                    id: m.id,
+                    senderId: m.sender_id === user?.id ? 'me' : m.sender_id,
+                    text: m.text,
+                    timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    status: 'read' as const
+                }));
+            setMessages(filteredMsgs);
+        }
+    }, [selectedChat, allRawMessages, user]);
 
     useEffect(() => {
         scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const handleSendMessage = () => {
-        if (!messageInput.trim()) return;
-        const newMsg: Message = {
-            id: Date.now().toString(),
-            senderId: 'me',
-            text: messageInput,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: 'sent'
-        };
-        setMessages(prev => [...prev, newMsg]);
-        setMessageInput('');
+    const handleSendMessage = async () => {
+        if (!messageInput.trim() || !user || !selectedChat) return;
+
+        const msgText = messageInput.trim();
+        setMessageInput(''); // optimistic clear
+
+        try {
+            const { error } = await supabase.from('messages').insert({
+                product_id: selectedChat.productId,
+                sender_id: user.id,
+                receiver_id: selectedChat.otherUserId,
+                text: msgText
+            });
+
+            if (error) throw error;
+        } catch (err) {
+            console.error("Message send failed:", err);
+            alert("Failed to send message.");
+        }
     };
 
     return (

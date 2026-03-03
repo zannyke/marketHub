@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, MessageSquare, Lock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle, MessageSquare, Lock, ShieldCheck, Store, MapPin, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useApp } from "@/providers/AppProvider";
 
@@ -14,6 +14,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     const [input, setInput] = useState("");
     const [locked, setLocked] = useState(false);
     const [product, setProduct] = useState<any>(null);
+    const [sellerProfile, setSellerProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -31,6 +32,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
                 if (productError) throw productError;
                 setProduct(productData);
+
+                // Fetch Seller Profile
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', productData.seller_id)
+                    .single();
+
+                if (profileData) {
+                    setSellerProfile(profileData);
+                }
 
                 // 2. Realtime Chat Setup (if logged in)
                 if (user && productData) {
@@ -253,6 +265,49 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                                 </div>
                             </div>
                         </Card>
+
+                        {/* Seller/Shop Details Card */}
+                        {sellerProfile && (
+                            <Card className="p-8 bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm rounded-[32px]">
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                    <Store size={20} className="text-teal-500" />
+                                    {sellerProfile.shop_name || "Independent Seller"}
+                                </h3>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center shrink-0 text-teal-600 dark:text-teal-400 font-bold">
+                                            {sellerProfile.full_name?.[0]?.toUpperCase() || 'S'}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-slate-900 dark:text-white">{sellerProfile.full_name}</p>
+                                            <p className="text-xs text-slate-500">Identity Verified</p>
+                                        </div>
+                                    </div>
+
+                                    {sellerProfile.shop_description && (
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic border-l-2 border-teal-200 dark:border-teal-800 pl-3">
+                                            "{sellerProfile.shop_description}"
+                                        </p>
+                                    )}
+
+                                    <div className="pt-4 border-t border-slate-50 dark:border-slate-800/50 space-y-2">
+                                        {(sellerProfile.shop_location || sellerProfile.location) && (
+                                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                                                <MapPin size={14} className="text-slate-400" />
+                                                {sellerProfile.shop_location || sellerProfile.location}
+                                            </div>
+                                        )}
+                                        {sellerProfile.shop_hours && (
+                                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                                                <Clock size={14} className="text-slate-400" />
+                                                {sellerProfile.shop_hours}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
 
                         {/* Negotiation Center */}
                         <Card className="p-8 bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-lg rounded-[32px] overflow-hidden">
