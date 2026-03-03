@@ -147,8 +147,17 @@ export default function UnifiedAuthPage() {
             <div className="flex items-center justify-center bg-white p-8 lg:p-12">
                 <div className="w-full max-w-md space-y-8">
                     <div className="text-center lg:text-left">
-                        <h1 className="text-3xl font-bold text-slate-900">Sign In / Sign Up</h1>
-                        <p className="text-slate-500 mt-2">Enter your email or phone number to continue.</p>
+                        <h1 className="text-3xl font-bold text-slate-900">{step === 'input' ? 'Sign In / Sign Up' : 'Confirm Authentication'}</h1>
+                        {step === 'input' ? (
+                            <p className="text-slate-500 mt-2">Enter your email or phone number to continue.</p>
+                        ) : (
+                            <div className="text-slate-500 mt-2 flex items-center justify-center lg:justify-start gap-2">
+                                <span>Sent to <span className="font-semibold text-slate-800">{authIdentifier}</span></span>
+                                <button type="button" onClick={() => setStep('input')} className="text-teal-600 hover:text-teal-700 font-medium text-sm border-l border-slate-300 pl-2 transition-colors">
+                                    Change {authType}
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {error && (
