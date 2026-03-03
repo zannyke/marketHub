@@ -5,11 +5,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, MessageSquare, Lock, ShieldCheck, Store, MapPin, Clock } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useApp } from "@/providers/AppProvider";
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id: productId } = React.use(params);
+    const { id: productId } = use(params);
     const { addToCart, cartItems, user, supabase } = useApp();
     const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState("");

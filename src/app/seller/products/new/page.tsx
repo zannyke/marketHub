@@ -46,26 +46,27 @@ export default function NewProductPage() {
 
         setIsUploading(true);
         try {
-            const fileExt = file.name.split('.').pop() || 'jpg';
-            const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-            const filePath = `${fileName}`;
+            // Upload to Cloudinary for robust, fast image delivery without needing Supabase bucket config
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'market_hub_preset');
+            formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '');
 
-            const { data, error } = await supabase.storage
-                .from('product-images')
-                .upload(filePath, file, { cacheControl: '3600', upsert: false });
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
 
-            if (error) {
-                throw error;
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error?.message || 'Failed to upload image to Cloudinary');
             }
 
-            const { data: publicUrlData } = supabase.storage
-                .from('product-images')
-                .getPublicUrl(filePath);
-
-            setImageUrl(publicUrlData.publicUrl);
+            const data = await res.json();
+            setImageUrl(data.secure_url);
         } catch (error: any) {
             console.error("Upload error:", error);
-            alert(`Image upload failed: ${error.message}`);
+            alert(`Image upload failed: ${error.message}. If Cloudinary is unconfigured, please check your .env.local file.`);
         } finally {
             setIsUploading(false);
             e.target.value = '';
