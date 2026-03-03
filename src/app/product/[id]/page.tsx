@@ -8,7 +8,8 @@ import { ArrowLeft, CheckCircle, MessageSquare, Lock, ShieldCheck, Store, MapPin
 import { useState, useEffect } from "react";
 import { useApp } from "@/providers/AppProvider";
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: productId } = React.use(params);
     const { addToCart, cartItems, user, supabase } = useApp();
     const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState("");
@@ -27,7 +28,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 const { data: productData, error: productError } = await supabase
                     .from('products')
                     .select('*')
-                    .eq('id', params.id)
+                    .eq('id', productId)
                     .single();
 
                 if (productError) throw productError;
@@ -50,7 +51,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     const { data: msgData, error: msgError } = await supabase
                         .from('messages')
                         .select('*')
-                        .eq('product_id', params.id)
+                        .eq('product_id', productId)
                         .or(`and(sender_id.eq.${user.id},receiver_id.eq.${productData.seller_id}),and(sender_id.eq.${productData.seller_id},receiver_id.eq.${user.id})`)
                         .order('created_at', { ascending: true });
 
@@ -60,12 +61,12 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
                     // Listen for new incoming messages live
                     subscription = supabase
-                        .channel(`chat_${params.id}`)
+                        .channel(`chat_${productId}`)
                         .on('postgres_changes', {
                             event: 'INSERT',
                             schema: 'public',
                             table: 'messages',
-                            filter: `product_id=eq.${params.id}`
+                            filter: `product_id=eq.${productId}`
                         }, (payload) => {
                             const newMsg = payload.new;
                             // Only append if it belongs to this conversation
@@ -89,12 +90,12 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             }
         };
 
-        if (params.id) fetchProductAndMessages();
+        if (productId) fetchProductAndMessages();
 
         return () => {
             if (subscription) supabase.removeChannel(subscription);
         };
-    }, [params.id, supabase, user]);
+    }, [productId, supabase, user]);
 
     const handleSend = async () => {
         if (!input.trim() || !user || !product) return;

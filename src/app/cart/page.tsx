@@ -16,50 +16,54 @@ export default function CartPage() {
     const [checkoutSuccess, setCheckoutSuccess] = useState(false);
     const [deliveryAddress, setDeliveryAddress] = useState("");
 
+    // Security Checkpoint State
+    const [showSecurityModal, setShowSecurityModal] = useState(false);
+    const [securityIdentifier, setSecurityIdentifier] = useState("");
+    const [securityError, setSecurityError] = useState<string | null>(null);
+
     const subtotal = cartItems.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
     const tax = subtotal * 0.08;
     const total = subtotal + tax;
 
-    const handleCheckout = async () => {
-        setIsProcessing(true);
-        // Simulate secure payment processing latency
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        if (user && cartItems.length > 0) {
-            if (!deliveryAddress.trim()) {
-                alert("Please provide a delivery address.");
-                setIsProcessing(false);
-                return;
-            }
-
-            try {
-                // Deduct stock from database for all checked out items and trigger orders
-                for (const item of cartItems) {
-                    const { data: product } = await supabase.from('products').select('stock_quantity, seller_id').eq('id', item.productId).single();
-                    if (product) {
-                        // Create the Order Record for Delivery Drivers
-                        await supabase.from('orders').insert({
-                            buyer_id: user.id,
-                            seller_id: product.seller_id,
-                            product_id: item.productId,
-                            quantity: item.quantity,
-                            total_price: (item.price || 0) * item.quantity,
-                            delivery_address: deliveryAddress
-                        });
-
-                        const newStock = Math.max(0, (product.stock_quantity || 1) - item.quantity);
-                        await supabase.from('products').update({ stock_quantity: newStock }).eq('id', item.productId);
-                    }
-                    // Clear all items optimistically from cart
-                    removeFromCart(item.productId);
-                }
-            } catch (err) {
-                console.error("Checkout processing error:", err);
-            }
+    const handleCheckout = () => {
+        if (!deliveryAddress.trim()) {
+            alert("Please provide a delivery address.");
+            return;
         }
+        setShowSecurityModal(true);
+    };
 
-        setIsProcessing(false);
-        setCheckoutSuccess(true);
+    const processCheckoutSecurity = async () => {
+        setIsProcessing(true);
+        setSecurityError(null);
+
+        try {
+            const res = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    checkout_email: securityIdentifier,
+                    cart_items: cartItems,
+                    delivery_address: deliveryAddress
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Security Checkpoint Failed');
+            }
+
+            // Success
+            cartItems.forEach(item => removeFromCart(item.productId));
+            setCheckoutSuccess(true);
+            setShowSecurityModal(false);
+        } catch (err: any) {
+            console.error("Checkout processing error:", err);
+            setSecurityError(err.message);
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     // Swift 70/30 Financial Engine Calculation
@@ -263,6 +267,60 @@ export default function CartPage() {
                     </div>
                 )}
             </div>
+
+            {/* Security Checkpoint Modal */}
+            {showSecurityModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95">
+                        <div className="flex justify-center mb-6">
+                            <div className="w-16 h-16 rounded-full bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600">
+                                <ShieldCheck size={32} />
+                            </div>
+                        </div>
+
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-2">Security Checkpoint</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-center mb-6 text-sm">
+                            To authorize payment and finalize the order, please re-enter the Phone Number or Email address associated with this session.
+                        </p>
+
+                        {securityError && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
+                                {securityError}
+                            </div>
+                        )}
+
+                        <div className="space-y-4">
+                            <Input
+                                placeholder="Enter Email or Phone Number"
+                                value={securityIdentifier}
+                                onChange={(e) => setSecurityIdentifier(e.target.value)}
+                                className="h-12 bg-slate-50 dark:bg-slate-800"
+                            />
+
+                            <Button
+                                className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-white font-bold"
+                                onClick={processCheckoutSecurity}
+                                disabled={isProcessing || !securityIdentifier.trim()}
+                            >
+                                {isProcessing ? "Verifying Identity..." : "Confirm Identity & Pay"}
+                            </Button>
+
+                            <Button
+                                variant="ghost"
+                                className="w-full h-12 text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                                onClick={() => {
+                                    setShowSecurityModal(false);
+                                    setSecurityIdentifier("");
+                                    setSecurityError(null);
+                                }}
+                                disabled={isProcessing}
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
