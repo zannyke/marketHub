@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/providers/AppProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,13 @@ export default function LoginPage() {
     const [logs, setLogs] = useState<string[]>([]);
     const [isOtpLogin, setIsOtpLogin] = useState(false);
     const [otpSent, setOtpSent] = useState(false);
+
+    useEffect(() => {
+        // Prefetch main redirect routes so Next.js doesn't have to fetch them after authentication
+        router.prefetch("/?welcome=true");
+        router.prefetch("/dashboard");
+        router.prefetch("/delivery/dashboard");
+    }, [router]);
 
     const addLog = (msg: string) => setLogs(prev => [...prev, `${new Date().toISOString().split('T')[1].split('.')[0]}: ${msg}`]);
 
