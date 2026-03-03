@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { useApp } from "@/providers/AppProvider";
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-    const { addToCart, user, supabase } = useApp();
+    const { addToCart, cartItems, user, supabase } = useApp();
     const [messages, setMessages] = useState<any[]>([]);
     const [input, setInput] = useState("");
     const [locked, setLocked] = useState(false);
@@ -217,24 +217,16 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                                 </div>
                                 <p className="text-slate-500 dark:text-slate-400 font-medium mb-4">Fixed price. Negotiable via chat below.</p>
 
-                                {product.stock_quantity > 0 ? (
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-bold border border-emerald-200 dark:border-emerald-800">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                        {product.stock_quantity} unit{product.stock_quantity === 1 ? '' : 's'} available
-                                    </div>
-                                ) : (
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-full text-sm font-bold border border-red-200 dark:border-red-800">
-                                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                        Out of stock
-                                    </div>
-                                )}
+                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-bold border border-emerald-200 dark:border-emerald-800">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                    Item available
+                                </div>
                             </div>
 
                             <div className="space-y-4">
                                 <Button
                                     size="lg"
-                                    disabled={product.stock_quantity <= 0}
-                                    className="w-full h-16 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:bg-slate-400 text-white font-bold text-lg rounded-2xl shadow-lg shadow-teal-500/20 transform active:scale-95 transition-all"
+                                    className="w-full h-16 bg-teal-600 hover:bg-teal-700 text-white font-bold text-lg rounded-2xl shadow-lg shadow-teal-500/20 transform active:scale-95 transition-all"
                                     onClick={() => addToCart({
                                         id: product.id,
                                         productId: product.id,
@@ -245,7 +237,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                                         quantity: 1
                                     })}
                                 >
-                                    {product.stock_quantity > 0 ? "Add to Cart" : "Item Unavailable"}
+                                    Add to Cart
                                 </Button>
                                 <Button variant="outline" className="w-full h-14 border-2 border-slate-100 dark:border-slate-800 font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                     View Live Demo
@@ -318,35 +310,59 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                                 <h3 className="font-bold text-xl text-slate-900 dark:text-white uppercase tracking-tight">Negotiation Center</h3>
                             </div>
 
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 h-60 overflow-y-auto mb-6 flex flex-col gap-3 scrollbar-hide">
-                                {messages.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center h-full opacity-40 text-center px-4">
-                                        <p className="text-sm font-medium text-slate-500">The negotiation session is inactive.</p>
-                                        <p className="text-xs text-slate-400 mt-1">Send a message to start direct communication with the seller.</p>
-                                    </div>
-                                ) : (
-                                    messages.map((m, i) => {
-                                        const isYou = m.sender_id === user?.id;
-                                        return (
-                                            <div key={m.id || i} className={`p-4 rounded-2xl text-sm max-w-[85%] shadow-sm ${isYou ? 'bg-teal-600 ml-auto text-white' : 'bg-white dark:bg-slate-900 mr-auto text-slate-800 dark:text-white border border-slate-100 dark:border-slate-800'}`}>
-                                                <div className={`text-[10px] font-black uppercase mb-1 tracking-widest opacity-70 ${isYou ? 'text-teal-50' : 'text-slate-400'}`}>{isYou ? 'You' : 'Seller'}</div>
-                                                <div className="font-medium leading-relaxed">{m.text}</div>
+                            {cartItems.some(i => i.productId === product.id) ? (
+                                <>
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 h-60 overflow-y-auto mb-6 flex flex-col gap-3 scrollbar-hide">
+                                        {messages.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center h-full opacity-40 text-center px-4">
+                                                <p className="text-sm font-medium text-slate-500">The negotiation session is inactive.</p>
+                                                <p className="text-xs text-slate-400 mt-1">Send a message to start direct communication with the seller.</p>
                                             </div>
-                                        );
-                                    })
-                                )}
-                            </div>
+                                        ) : (
+                                            messages.map((m, i) => {
+                                                const isYou = m.sender_id === user?.id;
+                                                return (
+                                                    <div key={m.id || i} className={`p-4 rounded-2xl text-sm max-w-[85%] shadow-sm ${isYou ? 'bg-teal-600 ml-auto text-white' : 'bg-white dark:bg-slate-900 mr-auto text-slate-800 dark:text-white border border-slate-100 dark:border-slate-800'}`}>
+                                                        <div className={`text-[10px] font-black uppercase mb-1 tracking-widest opacity-70 ${isYou ? 'text-teal-50' : 'text-slate-400'}`}>{isYou ? 'You' : 'Seller'}</div>
+                                                        <div className="font-medium leading-relaxed">{m.text}</div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
 
-                            <div className="flex gap-2 mb-6">
-                                <Input
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                    placeholder="Enter your offer..."
-                                    className="bg-slate-50 dark:bg-slate-800 border-none h-12 rounded-xl focus-visible:ring-teal-500/20"
-                                />
-                                <Button onClick={handleSend} className="bg-slate-900 dark:bg-white dark:text-slate-900 text-white h-12 px-6 font-bold rounded-xl active:scale-95 transition-transform">Send</Button>
-                            </div>
+                                    <div className="flex gap-2 mb-6">
+                                        <Input
+                                            value={input}
+                                            onChange={(e) => setInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                                            placeholder="Enter your offer..."
+                                            className="bg-slate-50 dark:bg-slate-800 border-none h-12 rounded-xl focus-visible:ring-teal-500/20"
+                                        />
+                                        <Button onClick={handleSend} className="bg-slate-900 dark:bg-white dark:text-slate-900 text-white h-12 px-6 font-bold rounded-xl active:scale-95 transition-transform">Send</Button>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-2xl text-center border-2 border-dashed border-slate-200 dark:border-slate-700 mb-6 flex flex-col items-center justify-center">
+                                    <Lock className="text-slate-400 mb-4" size={32} />
+                                    <h4 className="font-bold text-slate-900 dark:text-white mb-2">Chat Locked</h4>
+                                    <p className="text-sm text-slate-500 mb-6 font-medium">Add this item to your cart to unlock direct seller communication.</p>
+                                    <Button
+                                        onClick={() => addToCart({
+                                            id: product.id,
+                                            productId: product.id,
+                                            title: product.title,
+                                            price: product.price,
+                                            image_url: product.image_url,
+                                            category: product.category,
+                                            quantity: 1
+                                        })}
+                                        className="bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-full px-8 shadow-md hover:shadow-lg transition-all"
+                                    >
+                                        Add to Cart to Unlock Chat
+                                    </Button>
+                                </div>
+                            )}
 
                             <div className="pt-6 border-t border-slate-50 dark:border-slate-800">
                                 <Button
