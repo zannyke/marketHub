@@ -68,8 +68,8 @@ export default function UnifiedAuthPage() {
         // Use the sanitized state instead of raw formData
         const token = otp;
 
-        if (token.length !== 6) {
-            setError("Please enter a valid 6-digit code.");
+        if (token.length < 6) {
+            setError("Please enter a valid verification code.");
             setLoading(false);
             return;
         }
@@ -114,8 +114,8 @@ export default function UnifiedAuthPage() {
     };
 
     const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Strip non-numeric characters and cap at 6 digits
-        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+        // Strip non-numeric characters and cap at 8 digits
+        const val = e.target.value.replace(/\D/g, '').slice(0, 8);
         setOtp(val);
     };
 

@@ -67,8 +67,8 @@ export default function SignupPage() {
                     setOtpSent(true);
                 } else {
                     // 2. Verify OTP for Phone
-                    if (otp.length !== 6) {
-                        setError("Please enter a valid 6-digit code.");
+                    if (otp.length < 6) {
+                        setError("Please enter a valid verification code.");
                         setLoading(false);
                         return;
                     }
@@ -300,7 +300,7 @@ export default function SignupPage() {
                                             type="text"
                                             required
                                             value={otp}
-                                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 8))}
                                             icon={<Lock size={18} />}
                                             placeholder="000000"
                                             className="h-11 bg-white border-teal-200 focus-visible:ring-teal-500 text-center tracking-widest font-bold text-lg"
