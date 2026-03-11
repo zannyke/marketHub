@@ -18,6 +18,9 @@ export default function UnifiedAuthPage() {
     const [authIdentifier, setAuthIdentifier] = useState("");
     const [authType, setAuthType] = useState<'email' | 'phone'>('email');
 
+    // Controlled state for OTP to handle copy/paste with spaces
+    const [otp, setOtp] = useState("");
+
     useEffect(() => {
         router.prefetch("/?welcome=true");
         router.prefetch("/dashboard");
@@ -62,8 +65,14 @@ export default function UnifiedAuthPage() {
         setLoading(true);
         setError(null);
 
-        const formData = new FormData(e.currentTarget);
-        const token = (formData.get("otp") as string).trim();
+        // Use the sanitized state instead of raw formData
+        const token = otp;
+
+        if (token.length !== 6) {
+            setError("Please enter a valid 6-digit code.");
+            setLoading(false);
+            return;
+        }
 
         try {
             let res;
@@ -102,6 +111,12 @@ export default function UnifiedAuthPage() {
             setError(err.message || "Invalid verification code. Please try again.");
             setLoading(false);
         }
+    };
+
+    const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Strip non-numeric characters and cap at 6 digits
+        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+        setOtp(val);
     };
 
     return (
@@ -204,10 +219,11 @@ export default function UnifiedAuthPage() {
                                         type="text"
                                         name="otp"
                                         required
+                                        value={otp}
+                                        onChange={handleOtpChange}
                                         placeholder="123456"
                                         autoComplete="one-time-code"
                                         inputMode="numeric"
-                                        maxLength={6}
                                         className="w-full h-11 pl-10 pr-3 rounded-md bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow font-mono tracking-widest text-lg"
                                     />
                                 </div>
@@ -231,3 +247,4 @@ export default function UnifiedAuthPage() {
         </div>
     );
 }
+
