@@ -89,9 +89,9 @@ export default function NewProductPage() {
         setIsLoading(true);
 
         try {
-            // OPTIMISTIC PUBLISHING: Fire-and-forget the database insertion 
-            // so we don't wait for server latency. It inserts in the background.
-            supabase.from('products').insert({
+            // Wait for database insertion to complete before navigating
+            // to ensure the new item is synced and visible in the catalog.
+            const { error } = await supabase.from('products').insert({
                 title: formData.title,
                 description: formData.description,
                 price: parseFloat(formData.price),
@@ -99,11 +99,10 @@ export default function NewProductPage() {
                 tag: formData.condition,
                 image_url: imageUrl,
                 seller_id: user.id
-            }).then(({ error }) => {
-                if (error) console.error("Background sync error:", error);
             });
 
-            // Fast transition to products page instantly
+            if (error) throw error;
+
             router.prefetch('/seller/products');
             setIsLoading(false);
             setSuccess(true);
