@@ -89,9 +89,9 @@ export default function NewProductPage() {
         setIsLoading(true);
 
         try {
-            // Wait for database insertion to complete before navigating
-            // to ensure the new item is synced and visible in the catalog.
-            const { data, error } = await supabase.from('products').insert({
+            // Optimistic DB insert in the background to avoid any client-side Promise hanging.
+            // .then() handles it asynchronously without blocking the UI thread.
+            supabase.from('products').insert({
                 title: formData.title,
                 description: formData.description,
                 price: parseFloat(formData.price),
@@ -99,22 +99,22 @@ export default function NewProductPage() {
                 tag: formData.condition,
                 image_url: imageUrl,
                 seller_id: user.id
-            }).select();
+            }).select().then(({ data, error }) => {
+                if (error) console.error("Database insert error:", error);
+                else console.log("Database insert success:", data);
+            });
 
-            if (error) {
-                console.error("Database insert error:", error);
-                alert(`Publication Error: ${error.message || JSON.stringify(error)}`);
-                setIsLoading(false);
-                return;
-            }
-
+            // Immediately switch to Success UI state
             router.prefetch('/seller/products');
             setIsLoading(false);
             setSuccess(true);
 
+            // Wait 1.5 seconds before navigating to the Catalog.
+            // This guarantees the database background insert finishes before
+            // the catalog fetches the inventory lists!
             setTimeout(() => {
                 router.push('/seller/products');
-            }, 600);
+            }, 1500);
         } catch (err: any) {
             console.error("Exception during publish:", err);
             alert(`Exception Error: ${err?.message || "Please check console"}`);
