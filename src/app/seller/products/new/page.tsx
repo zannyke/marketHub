@@ -91,7 +91,7 @@ export default function NewProductPage() {
         try {
             // Wait for database insertion to complete before navigating
             // to ensure the new item is synced and visible in the catalog.
-            const { error } = await supabase.from('products').insert({
+            const { data, error } = await supabase.from('products').insert({
                 title: formData.title,
                 description: formData.description,
                 price: parseFloat(formData.price),
@@ -99,9 +99,14 @@ export default function NewProductPage() {
                 tag: formData.condition,
                 image_url: imageUrl,
                 seller_id: user.id
-            });
+            }).select();
 
-            if (error) throw error;
+            if (error) {
+                console.error("Database insert error:", error);
+                alert(`Publication Error: ${error.message || JSON.stringify(error)}`);
+                setIsLoading(false);
+                return;
+            }
 
             router.prefetch('/seller/products');
             setIsLoading(false);
@@ -111,8 +116,8 @@ export default function NewProductPage() {
                 router.push('/seller/products');
             }, 600);
         } catch (err: any) {
-            console.error(err);
-            alert(`Publication Error: ${err.message}`);
+            console.error("Exception during publish:", err);
+            alert(`Exception Error: ${err?.message || "Please check console"}`);
             setIsLoading(false);
         }
     };
