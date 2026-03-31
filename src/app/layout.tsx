@@ -47,6 +47,22 @@ export default function RootLayout({
           </AppShell>
           <AiAssistant />
         </AppProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) {
+      registration.unregister();
+      console.log('ServiceWorker unregistered');
+    }
+  });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

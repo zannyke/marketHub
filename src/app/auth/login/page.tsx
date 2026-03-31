@@ -76,20 +76,28 @@ export default function UnifiedAuthPage() {
 
         try {
             let res;
+            
+            // Timeout wrapper to prevent eternal spinning if fetch drops silently
+            const withTimeout = (promise: Promise<any>, ms = 10000) => {
+                let timeoutId: any;
+                const timeoutPromise = new Promise((_, reject) => {
+                    timeoutId = setTimeout(() => reject(new Error("Verification took too long. Please check your connection or Refresh.")), ms);
+                });
+                return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+            };
+
             if (authType === 'email') {
                 // By default try verifying it as a magiclink/email login token
-                res = await supabase.auth.verifyOtp({ email: authIdentifier, token, type: 'email' });
+                res = await withTimeout(supabase.auth.verifyOtp({ email: authIdentifier, token, type: 'email' }));
 
-                // If the user's account was just created, Supabase sends a "signup" token instead.
-                // Fallback to verifying it as a signup token if the first attempt returns an invalid error.
                 if (res.error && (res.error.message.includes("expired or is invalid") || res.error.message.includes("Token"))) {
-                    const fallbackRes = await supabase.auth.verifyOtp({ email: authIdentifier, token, type: 'signup' });
+                    const fallbackRes = await withTimeout(supabase.auth.verifyOtp({ email: authIdentifier, token, type: 'signup' }));
                     if (!fallbackRes.error) {
                         res = fallbackRes;
                     }
                 }
             } else {
-                res = await supabase.auth.verifyOtp({ phone: authIdentifier, token, type: 'sms' });
+                res = await withTimeout(supabase.auth.verifyOtp({ phone: authIdentifier, token, type: 'sms' }));
             }
 
             if (res.error) throw res.error;
@@ -105,6 +113,10 @@ export default function UnifiedAuthPage() {
                 }
 
                 router.push(redirectPath);
+                // Keep loading true while routing
+            } else {
+                setError("Verification complete, but no active session returned.");
+                setLoading(false);
             }
         } catch (err: any) {
             console.error("OTP verify error:", err);
