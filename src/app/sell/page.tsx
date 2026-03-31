@@ -64,7 +64,7 @@ export default function SellPage() {
                 tag: formData.tag || null,
                 image_url: formData.image_url,
                 seller_id: user.id
-            });
+            }).select();
 
             if (error) throw error;
 
