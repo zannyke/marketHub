@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, User, Github, ArrowRight, Briefcase, ShoppingBag, Truck, Phone } from "lucide-react";
+import { Mail, Lock, User, Github, ArrowRight, Briefcase, ShoppingBag, Truck, Phone, Eye, EyeOff } from "lucide-react";
 import { useApp } from "@/providers/AppProvider";
 
 export default function SignupPage() {
@@ -22,6 +22,8 @@ export default function SignupPage() {
     const [countryCode, setCountryCode] = useState("+1");
     const [phone, setPhone] = useState("");
     const [otp, setOtp] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const supabase = createClient();
 
@@ -218,7 +220,7 @@ export default function SignupPage() {
                                 disabled={otpSent}
                                 icon={<User size={18} />}
                                 placeholder="John Doe"
-                                className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                                className="h-11 bg-slate-50 border-slate-200 text-slate-900 focus-visible:ring-teal-500"
                             />
                         </div>
 
@@ -233,31 +235,45 @@ export default function SignupPage() {
                                         required
                                         icon={<Mail size={18} />}
                                         placeholder="name@example.com"
-                                        className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                                        className="h-11 bg-slate-50 border-slate-200 text-slate-900 focus-visible:ring-teal-500"
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 relative group">
                                         <Input
                                             label="Password"
                                             name="password"
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             required
                                             icon={<Lock size={18} />}
                                             placeholder="••••••••"
-                                            className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                                            className="h-11 bg-slate-50 border-slate-200 text-slate-900 focus-visible:ring-teal-500 pr-10"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-[32px] text-slate-400 hover:text-slate-600 focus:outline-none"
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 relative group">
                                         <Input
                                             label="Confirm"
                                             name="confirmPassword"
-                                            type="password"
+                                            type={showConfirmPassword ? "text" : "password"}
                                             required
                                             icon={<Lock size={18} />}
                                             placeholder="••••••••"
-                                            className="h-11 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                                            className="h-11 bg-slate-50 border-slate-200 text-slate-900 focus-visible:ring-teal-500 pr-10"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-[32px] text-slate-400 hover:text-slate-600 focus:outline-none"
+                                        >
+                                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
                                     </div>
                                 </div>
                             </>
@@ -269,7 +285,7 @@ export default function SignupPage() {
                                         value={countryCode}
                                         onChange={(e) => setCountryCode(e.target.value)}
                                         disabled={otpSent}
-                                        className="h-11 w-24 rounded-md border border-slate-200 bg-slate-50 px-2 py-2 text-sm focus-visible:ring-teal-500"
+                                        className="h-11 w-24 rounded-md border border-slate-200 bg-slate-50 px-2 py-2 text-sm text-slate-900 focus-visible:ring-teal-500"
                                     >
                                         <option value="+1">+1 (US/CA)</option>
                                         <option value="+44">+44 (UK)</option>
@@ -288,7 +304,7 @@ export default function SignupPage() {
                                         onChange={(e) => setPhone(e.target.value)}
                                         icon={<Phone size={18} />}
                                         placeholder="555-0123"
-                                        className="h-11 flex-1 bg-slate-50 border-slate-200 focus-visible:ring-teal-500"
+                                        className="h-11 flex-1 bg-slate-50 border-slate-200 text-slate-900 focus-visible:ring-teal-500"
                                     />
                                 </div>
 
@@ -303,7 +319,7 @@ export default function SignupPage() {
                                             onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 8))}
                                             icon={<Lock size={18} />}
                                             placeholder="000000"
-                                            className="h-11 bg-white border-teal-200 focus-visible:ring-teal-500 text-center tracking-widest font-bold text-lg"
+                                            className="h-11 bg-white border-teal-200 text-slate-900 focus-visible:ring-teal-500 text-center tracking-widest font-bold text-lg"
                                         />
                                         <p className="text-xs text-teal-700 font-medium">Please enter the 6-digit code sent to your phone.</p>
                                     </div>
@@ -315,12 +331,12 @@ export default function SignupPage() {
                             <div className="space-y-4 pt-4 border-t border-slate-100">
                                 <h3 className="text-xs font-bold text-slate-500 uppercase">Hardware Registry Details</h3>
                                 <div className="space-y-2">
-                                    <Input label="Vehicle Plate Number" name="plateNumber" required placeholder="KCD 123A" className="h-11 bg-slate-50" />
+                                    <Input label="Vehicle Plate Number" name="plateNumber" required placeholder="KCD 123A" className="h-11 bg-slate-50 text-slate-900 border-slate-200" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-sm font-semibold text-slate-700">Classification</label>
-                                        <select name="vehicleClass" required className="flex h-11 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus-visible:ring-teal-500">
+                                        <select name="vehicleClass" required className="flex h-11 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus-visible:ring-teal-500">
                                             <option value="B1">Motorcycle (B1)</option>
                                             <option value="B2">Light Van (B2)</option>
                                             <option value="B3">Truck (B3)</option>
@@ -328,7 +344,7 @@ export default function SignupPage() {
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-sm font-semibold text-slate-700">Energy Profile</label>
-                                        <select name="energyProfile" required className="flex h-11 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus-visible:ring-teal-500">
+                                        <select name="energyProfile" required className="flex h-11 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus-visible:ring-teal-500">
                                             <option value="electric">100% Electric</option>
                                             <option value="hybrid">Hybrid</option>
                                             <option value="petroleum">Petroleum</option>
@@ -342,7 +358,7 @@ export default function SignupPage() {
                             <div className="space-y-4 pt-4 border-t border-slate-100">
                                 <h3 className="text-xs font-bold text-slate-500 uppercase">Verification Registry</h3>
                                 <div className="space-y-2">
-                                    <Input label="National ID Number" name="nationalId" required placeholder="e.g. 12345678" className="h-11 bg-slate-50" />
+                                    <Input label="National ID Number" name="nationalId" required placeholder="e.g. 12345678" className="h-11 bg-slate-50 text-slate-900 border-slate-200" />
                                 </div>
                             </div>
                         )}

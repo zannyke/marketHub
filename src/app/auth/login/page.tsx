@@ -196,7 +196,7 @@ export default function UnifiedAuthPage() {
                                         value={authIdentifier}
                                         onChange={handleIdentifierChange}
                                         placeholder="name@example.com or +1234567890"
-                                        className="w-full h-11 pl-10 pr-3 rounded-md bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow"
+                                        className="w-full h-11 pl-10 pr-3 rounded-md bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow"
                                     />
                                 </div>
                             </div>
@@ -224,7 +224,7 @@ export default function UnifiedAuthPage() {
                                         placeholder="123456"
                                         autoComplete="one-time-code"
                                         inputMode="numeric"
-                                        className="w-full h-11 pl-10 pr-3 rounded-md bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow font-mono tracking-widest text-lg"
+                                        className="w-full h-11 pl-10 pr-3 rounded-md bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow font-mono tracking-widest text-lg"
                                     />
                                 </div>
                             </div>

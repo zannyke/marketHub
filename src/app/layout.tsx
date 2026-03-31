@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
@@ -14,6 +14,23 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "AI Nexus | Premium Marketplace",
   description: "The next generation of digital commerce powered by AI.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "AI Nexus",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0f172a",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
